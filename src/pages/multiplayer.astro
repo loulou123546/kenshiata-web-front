@@ -1,0 +1,11 @@
+---
+import Account from "../components/Account.svelte";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+    <main>
+        <h1 class="w-full text-center text-2xl">Multiplayers</h1>
+        <Account client:only="svelte" />
+    </main>
+</Layout>
