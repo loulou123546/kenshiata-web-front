@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Player from "../components/Player.svelte";
+---
+
+<Layout>
+    <main>
+        <h1 class="w-full text-center text-2xl">Titre de l'histoire</h1>
+        <Player client:only="svelte" />
+    </main>
+</Layout>

@@ -1,11 +1,23 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-	<Welcome />
+  <main>
+    <div class="p-32">
+      <h1 class="text-4xl">Kenshiata Studio</h1>
+      <h2 class="text-2xl text-gray-800 pt-8">
+        Where stories bring friends together !
+      </h2>
+    </div>
+
+    <div class="w-full text-center">
+      <a
+        class="p-4 text-xl bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        href="/story"
+      >
+        Start your adventure
+      </a>
+    </div>
+  </main>
 </Layout>
