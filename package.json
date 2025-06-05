@@ -12,9 +12,11 @@
 	},
 	"dependencies": {
 		"@astrojs/svelte": "^7.1.0",
+		"@nanostores/persistent": "^1.0.0",
 		"@tailwindcss/vite": "^4.1.8",
 		"astro": "^5.8.1",
 		"inkjs": "^2.3.2",
+		"nanostores": "^1.0.1",
 		"svelte": "^5.33.11",
 		"tailwindcss": "^4.1.8",
 		"typescript": "^5.8.3"

@@ -1,13 +1,11 @@
 ---
-import MyAccount from "../components/MyAccount.svelte";
 import WS from "../components/WS.svelte";
 import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
     <main>
-        <h1 class="w-full text-center text-2xl">Multiplayers</h1>
-        <MyAccount client:only="svelte" />
+        <h1 class="w-full text-center text-2xl">Websockets</h1>
         <WS client:only="svelte" />
     </main>
 </Layout>
