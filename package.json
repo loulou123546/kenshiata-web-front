@@ -7,7 +7,7 @@
 		"build": "astro build",
 		"preview": "astro preview",
 		"astro": "astro",
-		"prepare": "lefthook install",
+		"prepare": "lefthook install || true",
 		"lint": "npx @biomejs/biome check --write ."
 	},
 	"dependencies": {
