@@ -42,7 +42,7 @@ jobs:
           NODE_ENV: production
           PUBLIC_FRONT_DOMAIN: "https://d1bjwmpuvcsu23.cloudfront.net"
           PUBLIC_API_DOMAIN: "https://5h5him25pl.execute-api.eu-west-1.amazonaws.com"
-          PUBLIC_WEBSOKET: "ws://5h5him25pl.execute-api.eu-west-1.amazonaws.com"
+          PUBLIC_WEBSOKET: "wss://5h5him25pl.execute-api.eu-west-1.amazonaws.com"
 
       - name: Upload website files
         uses: actions/upload-artifact@v4.4.0
