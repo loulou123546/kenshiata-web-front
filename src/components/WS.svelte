@@ -3,12 +3,25 @@ import NetworkSync, {
 	listNetworkUsers,
 	type NetworkUser,
 } from "../services/networkSync.ts";
-import { Player, myPlayer } from "../services/players";
+import { myPlayer } from "../services/players";
+import Player from "./Player.svelte";
 
 const me: string = $derived(myPlayer.get().username);
 let users: NetworkUser[] = $state([]);
 const conn: NetworkSync = $state(new NetworkSync());
 let started: boolean = $state(false);
+let gameStarted: boolean = $state(false);
+
+conn.addListener("ping", (data: any) => {
+	conn.send("pong", {
+		data: data,
+	});
+});
+
+conn.addListener("pong", (data: any) => {
+	console.log("Received pong, connexion established !");
+	gameStarted = true;
+});
 
 async function joinNetwork() {
 	started = true;
@@ -54,5 +67,13 @@ $effect(() => {
                 {/if}
             {/each}
         </ul>
+    {/if}
+    {#if gameStarted}
+        <Player
+            send={(action: string, data: any) => conn.send(action, data)}
+            listen={(action: string, data: any) =>
+                conn.addListener(action, data)}
+            isHost={conn.host}
+        />
     {/if}
 </div>

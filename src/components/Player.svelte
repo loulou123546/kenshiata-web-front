@@ -1,12 +1,26 @@
 <script lang="ts">
-import { Peer } from "https://esm.sh/peerjs@1.5.4?bundle-deps";
 import { Story } from "inkjs";
 // https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#getting-started-with-the-runtime-api
 
+const { send, listen, isHost } = $props();
 let texts: string[] = $state([]);
 let choices: { title: string; index: number }[] = $state([]);
 
 let story: Story;
+
+listen("game-update", (data: any) => {
+	if (Array.isArray(data.texts)) {
+		data.texts.forEach((text: string) => {
+			texts.push(text);
+		});
+	}
+	if (Array.isArray(data.choices)) {
+		choices = data.choices.map((choice: any) => ({
+			title: choice.title,
+			index: choice.index,
+		}));
+	}
+});
 
 function runStory(selectIndex?: number) {
 	if (!story) return;
@@ -14,11 +28,19 @@ function runStory(selectIndex?: number) {
 		story.ChooseChoiceIndex(selectIndex);
 	}
 
+	const toSend: {
+		texts: string[];
+		choices: { index: number; title: string }[];
+	} = {
+		texts: [],
+		choices: [],
+	};
 	while (story.canContinue) {
 		choices = [];
 		const txt = story.Continue();
 		if (txt) {
 			texts.push(txt);
+			toSend.texts.push(txt);
 		}
 	}
 	if (story.currentChoices.length > 0) {
@@ -28,15 +50,26 @@ function runStory(selectIndex?: number) {
 				index: index,
 			})),
 		);
+		toSend.choices = story.currentChoices.map((choice, index) => ({
+			title: choice.text,
+			index: index,
+		}));
+	}
+	if (isHost) {
+		send("game-update", toSend);
 	}
 }
 
-fetch("/intercept.json")
-	.then((response) => response.text())
-	.then((storyContent) => {
-		story = new Story(storyContent);
-		runStory();
-	});
+if (isHost) {
+	fetch("/intercept.json")
+		.then((response) => response.text())
+		.then((storyContent) => {
+			story = new Story(storyContent);
+			runStory();
+		});
+} else {
+	console.log("Waiting for host to start the story...");
+}
 
 function exportState() {
 	localStorage.setItem("storyContent", JSON.stringify(texts.slice(-10)));
@@ -54,65 +87,30 @@ function restoreState() {
 		runStory();
 	}
 }
-
-const peerID = $state("");
-const peer = new Peer();
-peer.on("open", (id: string) => {
-	console.log("My peer ID is: " + id);
-});
-let conn;
-function connect() {
-	console.log("Connecting to peer:", peerID);
-	conn = peer.connect(peerID);
-	conn.on("open", () => {
-		console.time("pingpong");
-		conn.send("ping");
-		console.log("sent ping!");
-	});
-	conn.on("data", (data: any) => {
-		console.log(data);
-		if (data === "ping") {
-			conn.send("pong");
-		} else if (data === "pong") {
-			console.timeEnd("pingpong");
-		}
-	});
-}
-
-peer.on("connection", (conn2) => {
-	console.log("Received connection from:", conn2.peer);
-	conn2.on("data", (data: any) => {
-		console.log(data);
-		if (data === "ping") {
-			conn2.send("pong");
-		} else if (data === "pong") {
-			console.timeEnd("pingpong");
-		}
-	});
-});
 </script>
 
-<div>
-    <button onclick={exportState}> Save state </button>
-    <button onclick={restoreState}> Restore state </button>
-</div>
-<div>
-    <input type="text" placeholder="Connect to an ID" bind:value={peerID} />
-    <button onclick={connect}>Connect !</button>
-</div>
+{#if isHost}
+	<h2 class="text-2xl font-bold mb-4">Host</h2>
+	<div>
+		<button onclick={exportState}> Save state </button>
+		<button onclick={restoreState}> Restore state </button>
+	</div>
+{:else}
+	<h2 class="text-2xl font-bold mb-4">Player</h2>
+{/if}
 <div class="p-8 bg-gray-300">
-    {#each texts as text}
-        <p class="mb-2">{text}</p>
-    {/each}
+	{#each texts as text}
+		<p class="mb-2">{text}</p>
+	{/each}
 
-    <div class="flex flex-row flex-wrap">
-        {#each choices as choice}
-            <button
-                class="m-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-                onclick={() => runStory(choice.index)}
-            >
-                {choice.title}
-            </button>
-        {/each}
-    </div>
+	<div class="flex flex-row flex-wrap">
+		{#each choices as choice}
+			<button
+				class="m-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+				onclick={() => runStory(choice.index)}
+			>
+				{choice.title}
+			</button>
+		{/each}
+	</div>
 </div>

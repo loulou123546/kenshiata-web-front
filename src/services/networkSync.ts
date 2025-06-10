@@ -14,11 +14,14 @@ export default class NetworkSync {
 	private webrtc: WebRTCAPI | undefined = undefined;
 	private me: NetworkUser | undefined = undefined;
 	private target: NetworkUser | undefined = undefined;
+	private listeners: { [key: string]: ((data: any) => void)[] };
+	private isHost = false;
 	private connectedPromise:
 		| { resolve: (value: any) => void; reject: (error: any) => void }
 		| undefined = undefined;
 
 	constructor() {
+		this.listeners = { default: [] };
 		this.socket = new SocketAPI();
 		this.setupPlayerRequest();
 	}
@@ -46,6 +49,18 @@ export default class NetworkSync {
 		return prom;
 	}
 
+	public async send(action: string, data: any) {
+		if (!this.webrtc) {
+			throw new Error("You are not connected to any player");
+		}
+		this.webrtc.sendMessage(JSON.stringify({ action, ...data }));
+	}
+
+	public addListener(action: string, callback: (data: any) => void) {
+		if (!this.listeners[action]) this.listeners[action] = [];
+		this.listeners[action].push(callback);
+	}
+
 	private setupPlayerRequest() {
 		this.socket.addListener("play-together-request", (data: any) => {
 			console.log("play-together-request", data);
@@ -59,7 +74,8 @@ export default class NetworkSync {
 				accept,
 			});
 			if (accept) {
-				this.webrtc = new WebRTCAPI(false, this.socket, target, from);
+				this.isHost = false;
+				this.setupWebRTC(target, from);
 			}
 		});
 
@@ -70,7 +86,8 @@ export default class NetworkSync {
 				alert(
 					`${from.player.username} (${from.socketId}) à accepté votre invitation`,
 				);
-				this.webrtc = new WebRTCAPI(true, this.socket, target, from);
+				this.isHost = true;
+				this.setupWebRTC(target, from);
 				this.connectedPromise?.resolve(true);
 			} else {
 				alert(
@@ -79,6 +96,32 @@ export default class NetworkSync {
 				this.connectedPromise?.reject(new Error("Invitation refused"));
 			}
 		});
+	}
+
+	private setupWebRTC(from: Player, target: Player) {
+		this.webrtc = new WebRTCAPI(this.isHost, this.socket, from, target);
+		this.webrtc.onMessage((raw: any) => {
+			try {
+				const data = JSON.parse(raw);
+				if (data.action) {
+					this.listeners[data.action]?.forEach((callback) => {
+						callback(data);
+					});
+				} else {
+					this.listeners["default"]?.forEach((callback) => {
+						callback(data);
+					});
+				}
+			} catch {
+				this.listeners["default"]?.forEach((callback) => {
+					callback(raw);
+				});
+			}
+		});
+	}
+
+	public get host() {
+		return this.isHost;
 	}
 
 	public close() {

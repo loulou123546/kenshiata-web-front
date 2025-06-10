@@ -4,6 +4,7 @@ import type SocketAPI from "./websockets.ts";
 export default class WebRTCAPI {
 	private peerConn: RTCPeerConnection;
 	private dataChannel: RTCDataChannel | undefined = undefined;
+	private listeners: ((data: any) => void)[] = [];
 	private from: Player;
 	private target: Player;
 	private socket: SocketAPI;
@@ -72,7 +73,7 @@ export default class WebRTCAPI {
 		channel.onopen = () => {
 			console.log("Data channel is open");
 			this.ready = true;
-			this.sendMessage("ping");
+			this.sendMessage(JSON.stringify({ action: "ping" }));
 		};
 		channel.onclose = () => {
 			this.ready = false;
@@ -80,6 +81,13 @@ export default class WebRTCAPI {
 		};
 		channel.onmessage = (event) => {
 			console.log("Received message:", event.data);
+			try {
+				this.listeners.forEach((callback) => {
+					callback(event.data);
+				});
+			} catch {
+				console.error("Error processing received message:", event.data);
+			}
 		};
 	}
 
@@ -128,5 +136,9 @@ export default class WebRTCAPI {
 		if (!this.dataChannel || !this.ready)
 			throw new Error("Data channel is not ready");
 		this.dataChannel.send(message);
+	}
+
+	public onMessage(callback: (message: string) => void) {
+		this.listeners.push(callback);
 	}
 }
