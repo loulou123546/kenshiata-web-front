@@ -5,7 +5,7 @@ export default class SocketAPI {
 	private resolveAfterWhoami: (value: string) => void = () => {};
 
 	constructor() {
-		this.socket = new WebSocket("ws://localhost:4200");
+		this.socket = new WebSocket(import.meta.env.PUBLIC_WEBSOKET);
 		// La connexion est ouverte
 		this.socket.addEventListener("open", (event) => {
 			console.log("Connexion ouverte avec le serveur WebSocket");
