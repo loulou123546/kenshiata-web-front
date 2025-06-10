@@ -130,7 +130,7 @@ export default class NetworkSync {
 }
 
 export async function listNetworkUsers(): Promise<NetworkUser[]> {
-	const response = await fetch("http://localhost:4200/players/online", {
+	const response = await fetch(import.meta.env.PUBLIC_API_DOMAIN + "/players/online", {
 		method: "GET",
 		mode: "cors",
 		headers: {
