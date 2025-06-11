@@ -1,66 +1,31 @@
-import type { Player } from "./players";
 import type SocketAPI from "./websockets.ts";
+import type { NetworkUser } from "./networkSync";
 
 export default class WebRTCAPI {
 	private peerConn: RTCPeerConnection;
 	private dataChannel: RTCDataChannel | undefined = undefined;
 	private listeners: ((data: any) => void)[] = [];
-	private from: Player;
-	private target: Player;
-	private socket: SocketAPI;
+	private onIceCandidate: (candidate: RTCIceCandidate) => void;
+	private iceCandidates: RTCIceCandidate[] | false;
 	private ready = false;
 
 	constructor(
 		isHost: boolean,
-		socket: SocketAPI,
-		from: Player,
-		target: Player,
+		onIceCandidate: (candidate: RTCIceCandidate) => void,
 	) {
-		this.socket = socket;
-		this.from = from;
-		this.target = target;
 		this.peerConn = new RTCPeerConnection();
+		this.onIceCandidate = onIceCandidate;
+		this.iceCandidates = [];
 
 		this.peerConn.onicecandidate = (event) => {
 			if (event.candidate) {
 				console.log("New ICE candidate:", event.candidate);
-				this.socket.sendData("webrtc-send-ice-candidate", {
-					candidate: event.candidate,
-					from: this.from,
-					target: this.target,
-				});
+				this.onIceCandidate(event.candidate);
 			}
 		};
-		this.socket.addListener("webrtc-send-ice-candidate", (data: any) => {
-			console.log("Received ICE candidate from socket:", data);
-			this.peerConn
-				.addIceCandidate(new RTCIceCandidate(data.candidate))
-				.then(() => {
-					console.log("ICE candidate added successfully");
-				})
-				.catch((error) => {
-					console.error("Error adding ICE candidate:", error);
-				});
-		});
-		this.socket.addListener("webrtc-send-description", (data: any) => {
-			console.log("Received description from socket:", data);
-			const description = new RTCSessionDescription(data.description);
-			this.peerConn
-				.setRemoteDescription(description)
-				.then(() => {
-					console.log("Remote description set successfully");
-				})
-				.catch((error) => {
-					console.error("Error setting remote description:", error);
-				});
-			if (!isHost) {
-				this.createAnswer();
-			}
-		});
 
 		if (isHost) {
 			this.registerDataChannel(this.peerConn.createDataChannel("sendChannel"));
-			this.createOffer();
 		} else {
 			this.peerConn.ondatachannel = (event) => {
 				this.registerDataChannel(event.channel);
@@ -91,45 +56,38 @@ export default class WebRTCAPI {
 		};
 	}
 
-	private createOffer() {
-		this.peerConn
-			.createOffer()
-			.then((offer) => {
-				return this.peerConn.setLocalDescription(offer);
-			})
-			.then(() => {
-				console.log("Local description set:", this.peerConn.localDescription);
-				this.socket.sendData("webrtc-send-description", {
-					description: this.peerConn.localDescription,
-					from: this.from,
-					target: this.target,
-				});
-			})
-			.catch((error) => {
-				console.error("Error creating offer:", error);
-			});
+	public async createOffer(): Promise<RTCSessionDescription> {
+		const offer = await this.peerConn.createOffer();
+		await this.peerConn.setLocalDescription(offer);
+		return this.peerConn.localDescription as RTCSessionDescription;
 	}
 
-	private createAnswer() {
-		this.peerConn
-			.createAnswer()
-			.then((answer) => {
-				return this.peerConn.setLocalDescription(answer);
-			})
-			.then(() => {
-				console.log(
-					"Local description set after answer:",
-					this.peerConn.localDescription,
-				);
-				this.socket.sendData("webrtc-send-description", {
-					description: this.peerConn.localDescription,
-					from: this.from,
-					target: this.target,
-				});
-			})
-			.catch((error) => {
-				console.error("Error creating answer:", error);
-			});
+	public async createAnswer(): Promise<RTCSessionDescription> {
+		const answer = await this.peerConn.createAnswer();
+		await this.peerConn.setLocalDescription(answer);
+		return this.peerConn.localDescription as RTCSessionDescription;
+	}
+
+	public async saveRemoteDescription(data: RTCSessionDescription) {
+		const description = new RTCSessionDescription(data);
+		await this.peerConn.setRemoteDescription(description);
+	}
+
+	public async addIceCandidate(candidate: RTCIceCandidate) {
+		if (this.iceCandidates === false) {
+			await this.peerConn.addIceCandidate(new RTCIceCandidate(candidate))
+		} else {
+			this.iceCandidates.push(candidate);
+		}
+	}
+
+	public async flushIceCandidates() {
+		if (this.iceCandidates === false) return;
+		const condidates = this.iceCandidates;
+		this.iceCandidates = false;
+		for (const candidate of condidates) {
+			await this.peerConn.addIceCandidate(new RTCIceCandidate(candidate));
+		}
 	}
 
 	public sendMessage(message: string) {

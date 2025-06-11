@@ -98,7 +98,7 @@ export default class NetworkSync {
 		});
 	}
 
-	private setupWebRTC(from: Player, target: Player) {
+	private setupWebRTC(from: NetworkUser, target: NetworkUser) {
 		this.webrtc = new WebRTCAPI(this.isHost, this.socket, from, target);
 		this.webrtc.onMessage((raw: any) => {
 			try {
@@ -127,32 +127,4 @@ export default class NetworkSync {
 	public close() {
 		this.socket.close();
 	}
-}
-
-export async function listNetworkUsers(): Promise<NetworkUser[]> {
-	const response = await fetch(import.meta.env.PUBLIC_API_DOMAIN + "/players/online", {
-		method: "GET",
-		mode: "cors",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
-	if (!response.ok) {
-		return [];
-	}
-	const data = await response.json();
-	return data
-		.map((user: any) => {
-			try {
-				return NetworkUser.parse({
-					socketId: user.socketId,
-					player: {
-						username: user.username,
-					},
-				});
-			} catch {
-				return undefined;
-			}
-		})
-		.filter((user: NetworkUser | undefined) => user !== undefined);
 }

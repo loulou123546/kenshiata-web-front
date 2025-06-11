@@ -1,18 +1,24 @@
+import type { User } from "../models/user";
+
 export default class SocketAPI {
 	private socket: WebSocket | null = null;
 	private listeners: { [key: string]: ((data: any) => void)[] } = {};
 	private socketId: string | null = null;
 	private resolveAfterWhoami: (value: string) => void = () => {};
+	private logger: (...data: any[]) => void = console.log;
 
-	constructor() {
+	constructor({logger}: { logger?: (...data: any[]) => void } = {}) {
+		if (logger) this.logger = logger;
+		if (!import.meta.env.PUBLIC_WEBSOKET) throw new Error("PUBLIC_WEBSOKET variable is not defined");
+
 		this.socket = new WebSocket(import.meta.env.PUBLIC_WEBSOKET);
 		// La connexion est ouverte
 		this.socket.addEventListener("open", (event) => {
-			console.log("Connexion ouverte avec le serveur WebSocket");
+			this.logger("WebSocket: connection opened");
 		});
 		// Écouter les messages
 		this.socket.addEventListener("message", (event) => {
-			console.log("Voici un message du serveur", event.data);
+			this.logger("Voici un message du serveur", event.data);
 			const data = JSON.parse(event.data);
 			if (this.listeners[data.action]) {
 				this.listeners[data.action].forEach((callback: (data: any) => void) => {
@@ -22,9 +28,11 @@ export default class SocketAPI {
 		});
 		this.addListener("whoami", (data: any) => {
 			if (!data || !data.socketId)
-				console.error("Invalid data received for 'whoami':", data);
+				this.logger("WebSocket: Invalid data received for 'whoami':", data);
 			this.socketId = data.socketId;
+			this.logger("WebSocket: whoami received, socketId:", this.socketId);
 			this.resolveAfterWhoami?.(data.socketId);
+			this.resolveAfterWhoami = (_a) => {}; // promise should only resolve once
 		});
 	}
 
@@ -49,17 +57,18 @@ export default class SocketAPI {
 		});
 	}
 
-	public authenticate(username: string): Promise<string> {
+	public authenticate(user: User): Promise<string> {
 		if (!this.socket || !this.ready) throw new Error("Socket is not ready");
 		const prom = new Promise<string>((resolve) => {
 			this.resolveAfterWhoami = resolve;
 		});
 		this.socket.send(
 			JSON.stringify({
-				action: "player-online",
-				username,
+				action: "set-player",
+				user
 			}),
 		);
+		this.logger("WebSocket: authenticate with username:", user.username);
 		return prom;
 	}
 
@@ -68,7 +77,7 @@ export default class SocketAPI {
 		this.socket.close();
 	}
 
-	public sendData(action: string, data: object) {
+	public send(action: string, data: object) {
 		if (!this.socket || !this.ready) throw new Error("Socket is not ready");
 		this.socket.send(
 			JSON.stringify({
