@@ -68,7 +68,7 @@ export class NetworkFactory {
         this.onTimeout = onTimeout;
         this.onStepChange = onStepChange;
         this.logger = logger;
-        this.gameNetwork = new GameNetwork();
+        this.gameNetwork = new GameNetwork(isHost || false);
 
         if (isHost) {
             this.listenForResponse();

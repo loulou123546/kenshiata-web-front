@@ -5,8 +5,9 @@ export class GameNetwork {
     private msgQueue: { action: string, data: any, onSent: () => void }[] = [];
     private receivedPong: boolean = false;
     private onReadyCB: (() => void)[] = [];
+    public amIHost: boolean;
 
-    constructor() {
+    constructor(isHost: boolean) {
         this.addListener("ping", () => {
             this.send("pong", {});
         });
@@ -14,10 +15,15 @@ export class GameNetwork {
             this.receivedPong = true;
             this.onReadyCB.forEach((cb) => cb());
         });
+        this.amIHost = isHost;
     }
 
     public get ready (): boolean {
         return this.receivedPong;
+    }
+
+    public get isHost(): boolean {
+        return this.amIHost;
     }
 
     public async waitForReady(): Promise<void> {
