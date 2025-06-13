@@ -8,19 +8,42 @@
         step: string;
     }>();
 
+    const STEPS: { [key: string]: string[] } = {
+        "game-request-sent": [
+            "Demande de jeu envoyée",
+            "En attente de sa réponse",
+        ],
+        "sending-webrtc-descriptor": [
+            "Préparation du réseau",
+            "Etablissement de la connexion",
+        ],
+        "waiting-for-webrtc-descriptor": [
+            "Préparation du réseau",
+            "En attente de l'hôte",
+        ],
+        "exchanging-webrtc-ice": [
+            "Préparation du réseau",
+            "Recherche de passerelle réseau",
+        ],
+    };
+
     const direction = $derived.by(() => {
-        if (step === "game-request-sent" || step === "game-response-sent") {
-            return "right";
+        switch (step) {
+            case "game-request-sent":
+            case "sending-webrtc-descriptor":
+                return "right";
+            case "waiting-for-webrtc-descriptor":
+                return "left";
+            default:
+                return "both";
         }
     });
 
     const label = $derived.by(() => {
-        if (step === "game-request-sent") return "Demande de jeu envoyée";
-        if (step === "game-response-sent") return "Demande de jeu acceptée";
+        return STEPS?.[step]?.[0] ?? "En cours de connexion";
     });
     const label2 = $derived.by(() => {
-        if (step === "game-request-sent") return "En attente de sa réponse";
-        if (step === "game-response-sent") return "Préparation du réseau";
+        return STEPS?.[step]?.[1] ?? "";
     });
 </script>
 
@@ -44,6 +67,10 @@
                 <path d="M5,10 H68 M70,10 L62,2 M70,10 L62,18" />
             {:else if direction === "left"}
                 <path d="M70,10 H7 M5,10 L13,2 M5,10 L13,18" />
+            {:else if direction === "both"}
+                <path
+                    d="M7,10 H68 M70,10 L62,2 M5,10 L13,2 M70,10 L62,18 M5,10 L13,18"
+                />
             {/if}
         </svg>
         <h4 class="-mt-6 text-sm">{label2}</h4>

@@ -8,10 +8,12 @@
     import UserPairing from "./UserPairing.svelte";
     import { NetworkFactory } from "../services/networkFactory.ts";
     import { user, getAvatarSource } from "../models/user.ts";
+    import type { GameNetwork } from "../models/GameNetwork.ts";
 
-    const { socket, socketReady } = $props<{
+    const { socket, socketReady, onNetworkReady } = $props<{
         socket: SocketAPI;
         socketReady: boolean;
+        onNetworkReady: (instance: GameNetwork) => void;
     }>();
     let users: NetworkUser[] = $state([]);
     let playerTarget: NetworkUser | undefined = $state(undefined);
@@ -55,7 +57,9 @@
                     console.log("Refus de la partie");
                     playerTarget = undefined;
                 },
-                onConnection: () => {},
+                onConnection: (inst: GameNetwork) => {
+                    onNetworkReady(inst);
+                },
                 onError: (error: Error) => {
                     console.error("Erreur de connexion :", error);
                     playerTarget = undefined;

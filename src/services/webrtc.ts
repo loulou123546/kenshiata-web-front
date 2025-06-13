@@ -1,8 +1,6 @@
-import type SocketAPI from "./websockets.ts";
-import type { NetworkUser } from "./networkSync";
-
 export default class WebRTCAPI {
 	private peerConn: RTCPeerConnection;
+	private onDataChannelCreated: ((channel: RTCDataChannel) => void);;
 	private dataChannel: RTCDataChannel | undefined = undefined;
 	private listeners: ((data: any) => void)[] = [];
 	private onIceCandidate: (candidate: RTCIceCandidate) => void;
@@ -12,10 +10,12 @@ export default class WebRTCAPI {
 	constructor(
 		isHost: boolean,
 		onIceCandidate: (candidate: RTCIceCandidate) => void,
+		onDataChannelCreated: (channel: RTCDataChannel) => void,
 	) {
 		this.peerConn = new RTCPeerConnection();
 		this.onIceCandidate = onIceCandidate;
 		this.iceCandidates = [];
+		this.onDataChannelCreated = onDataChannelCreated;
 
 		this.peerConn.onicecandidate = (event) => {
 			if (event.candidate) {
@@ -35,25 +35,7 @@ export default class WebRTCAPI {
 
 	private registerDataChannel(channel: RTCDataChannel) {
 		this.dataChannel = channel;
-		channel.onopen = () => {
-			console.log("Data channel is open");
-			this.ready = true;
-			this.sendMessage(JSON.stringify({ action: "ping" }));
-		};
-		channel.onclose = () => {
-			this.ready = false;
-			console.log("Data channel is closed");
-		};
-		channel.onmessage = (event) => {
-			console.log("Received message:", event.data);
-			try {
-				this.listeners.forEach((callback) => {
-					callback(event.data);
-				});
-			} catch {
-				console.error("Error processing received message:", event.data);
-			}
-		};
+		this.onDataChannelCreated(channel);
 	}
 
 	public async createOffer(): Promise<RTCSessionDescription> {
