@@ -1,11 +1,11 @@
+import adapter from 'webrtc-adapter';
+
 export default class WebRTCAPI {
 	private peerConn: RTCPeerConnection;
 	private onDataChannelCreated: ((channel: RTCDataChannel) => void);;
 	private dataChannel: RTCDataChannel | undefined = undefined;
-	private listeners: ((data: any) => void)[] = [];
 	private onIceCandidate: (candidate: RTCIceCandidate) => void;
 	private iceCandidates: RTCIceCandidate[] | false;
-	private ready = false;
 
 	constructor(
 		isHost: boolean,
@@ -72,13 +72,10 @@ export default class WebRTCAPI {
 		}
 	}
 
-	public sendMessage(message: string) {
-		if (!this.dataChannel || !this.ready)
-			throw new Error("Data channel is not ready");
-		this.dataChannel.send(message);
-	}
-
-	public onMessage(callback: (message: string) => void) {
-		this.listeners.push(callback);
+	public close (): void {
+		this.peerConn.close();
+		if (this.dataChannel) {
+			this.dataChannel.close();
+		}
 	}
 }

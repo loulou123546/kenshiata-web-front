@@ -1,5 +1,8 @@
 <script lang="ts">
-    import SocketAPI from "../services/socketAPI.ts";
+    import SocketAPI, {
+        prepareGameNetworkFromSocket,
+        startUsingGameNetworkWithSocket,
+    } from "../services/socketAPI.ts";
     import {
         type NetworkUser,
         listNetworkUsers,
@@ -8,7 +11,7 @@
     import UserPairing from "./UserPairing.svelte";
     import { NetworkFactory } from "../services/networkFactory.ts";
     import { user, getAvatarSource } from "../models/user.ts";
-    import type { GameNetwork } from "../models/GameNetwork.ts";
+    import { GameNetwork } from "../models/GameNetwork.ts";
 
     const { socket, socketReady, onNetworkReady } = $props<{
         socket: SocketAPI;
@@ -45,6 +48,11 @@
         if (socketReady) {
             receivedRequest = undefined;
             playerTarget = target;
+            const alernativeGN = prepareGameNetworkFromSocket(
+                isHost,
+                socket,
+                target.socketId,
+            );
             new NetworkFactory({
                 isHost,
                 socket,
@@ -62,10 +70,22 @@
                 },
                 onError: (error: Error) => {
                     console.error("Erreur de connexion :", error);
-                    playerTarget = undefined;
+                    onNetworkReady(
+                        startUsingGameNetworkWithSocket(
+                            alernativeGN,
+                            socket,
+                            target.socketId,
+                        ),
+                    );
                 },
                 onTimeout: () => {
-                    playerTarget = undefined;
+                    onNetworkReady(
+                        startUsingGameNetworkWithSocket(
+                            alernativeGN,
+                            socket,
+                            target.socketId,
+                        ),
+                    );
                 },
                 onStepChange: (step: string) => {
                     stepPairing = step;

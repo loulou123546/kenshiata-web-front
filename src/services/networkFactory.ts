@@ -38,6 +38,7 @@ export class NetworkFactory {
     private onStepChange: (step: string) => void;
     private logger: (...data: any[]) => void;
     public gameNetwork: GameNetwork;
+    private timeout: NodeJS.Timeout | undefined = undefined;
 
     constructor({
         isHost,
@@ -119,6 +120,10 @@ export class NetworkFactory {
             (candidate: RTCIceCandidate) => {this.shareIceCandidate(candidate)},
             (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
         );
+        this.timeout = setTimeout(() => {
+            if (this.webrtc) this.webrtc.close()
+            this.onTimeout();
+        }, 8000);
 
         this.socket.addListener("webrtc-send-description", (data: any) => {
             const { from, target, description } = data;
@@ -151,6 +156,11 @@ export class NetworkFactory {
                     (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
                 );
             }
+            this.timeout = setTimeout(() => {
+                if (this.webrtc) this.webrtc.close()
+                this.onTimeout();
+            }, 8000);
+
             this.webrtc.saveRemoteDescription(description).then(() => {
                 // @ts-ignore
                 this.webrtc.createAnswer().then((answer) => {
@@ -198,6 +208,10 @@ export class NetworkFactory {
 
     private registerDataChannel(channel: RTCDataChannel) {
         channel.onopen = () => {
+            if (this.timeout) {
+                clearTimeout(this.timeout);
+                this.timeout = undefined;
+            }
         	console.log("Data channel is open");
             channel.send(JSON.stringify({ action: "ping" }));
             this.gameNetwork.internal_registerSendfunction((action: string, data: any) => {
@@ -207,6 +221,10 @@ export class NetworkFactory {
         };
         channel.onclose = () => {
         	console.log("Data channel is closed");
+        };
+        channel.onerror = (event) => {
+        	console.log("Data channel got an error:", event);
+            this.onError(new Error("Data channel error: " + event));
         };
         channel.onmessage = (event) => {
             try {

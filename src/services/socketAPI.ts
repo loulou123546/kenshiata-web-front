@@ -1,4 +1,5 @@
 import type { User } from "../models/user";
+import { GameNetwork } from "../models/GameNetwork";
 
 export default class SocketAPI {
 	private socket: WebSocket | null = null;
@@ -91,4 +92,24 @@ export default class SocketAPI {
 		if (!this.listeners[action]) this.listeners[action] = [];
 		this.listeners[action].push(callback);
 	}
+}
+
+export function prepareGameNetworkFromSocket(isHost: boolean, socket: SocketAPI, targetID: string): GameNetwork {
+	const gn = new GameNetwork(isHost);
+	socket.addListener("game-data", (data: any) => {
+		if (data.internal_action) {
+			gn.internal_receivedMessage(data.internal_action, data);
+		} else {
+			gn.internal_receivedMessage("default", data);
+		}
+	});
+	return gn;
+}
+
+export function startUsingGameNetworkWithSocket(gn: GameNetwork, socket: SocketAPI, targetID: string): GameNetwork {
+	gn.internal_registerSendfunction((action: string, data: any) => {
+		socket.send("game-data", {...data, internal_action: action, targetID});
+	});
+	socket.send("game-data", {internal_action: "ping", targetID});
+	return gn;
 }

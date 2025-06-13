@@ -19,7 +19,8 @@
 		"nanostores": "^1.0.1",
 		"svelte": "^5.33.11",
 		"tailwindcss": "^4.1.8",
-		"typescript": "^5.8.3"
+		"typescript": "^5.8.3",
+		"webrtc-adapter": "^9.0.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
