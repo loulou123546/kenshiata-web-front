@@ -1,4 +1,5 @@
 import { persistentMap } from "@nanostores/persistent";
+import { atom } from "nanostores";
 import { z } from "zod";
 
 export const User = z.object({
@@ -24,7 +25,13 @@ export const user = persistentMap<User>("user:me:", {
     online: "no",
 });
 
+export const players = atom<User[]>([]);
+
 export function getAvatarSource(avatar: string | undefined = undefined): string {
     if (!avatar) return `/avatar/${user.get().avatar}`;
     else return `/avatar/${avatar}`;
+}
+
+export function getPlayer(username: string): User | undefined {
+    return players.get().find(player => player.username === username);
 }

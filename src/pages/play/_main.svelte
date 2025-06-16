@@ -4,14 +4,20 @@
     import SmallPlayerCard from "../../components/SmallPlayerCard.svelte";
     import MatchMaking from "../../components/MatchMaking.svelte";
     import Gameplay from "../../components/Gameplay.svelte";
+    import ChooseGameFile from "../../components/ChooseGameFile.svelte";
     import SocketAPI from "../../services/socketAPI.ts";
     import type { GameNetwork } from "../../models/GameNetwork.ts";
+
+    const { stories } = $props<{
+        stories: string[];
+    }>();
 
     let me: User = $state(user.get());
     let editingUser: boolean = $state(user.get().username === "");
     let socket = $state<SocketAPI>(new SocketAPI());
     let authentificationDone: boolean = $state(false);
     let gameNetwork: GameNetwork | undefined = $state(undefined);
+    let gameFile: string | undefined = $state(undefined);
 
     async function onSaveUser() {
         authentificationDone = false;
@@ -31,16 +37,26 @@
 <main>
     {#if editingUser}
         <CreatePlayer whenready={onSaveUser} />
-    {:else if !gameNetwork}
+    {:else}
         <header class="flex flex-row justify-end">
             <SmallPlayerCard user={me} onclick={() => (editingUser = true)} />
         </header>
-        <MatchMaking
-            {socket}
-            socketReady={authentificationDone}
-            onNetworkReady={(instance) => (gameNetwork = instance)}
-        />
-    {:else}
-        <Gameplay {gameNetwork} />
+        {#if gameNetwork}
+            {#if gameFile}
+                <Gameplay {gameNetwork} {gameFile} />
+            {:else}
+                <ChooseGameFile
+                    {gameNetwork}
+                    {stories}
+                    onGameFileSelected={(file: string) => (gameFile = file)}
+                />
+            {/if}
+        {:else}
+            <MatchMaking
+                {socket}
+                socketReady={authentificationDone}
+                onNetworkReady={(instance) => (gameNetwork = instance)}
+            />
+        {/if}
     {/if}
 </main>

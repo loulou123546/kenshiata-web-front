@@ -1,13 +1,16 @@
 <script lang="ts">
     import { GameNetwork } from "../models/GameNetwork.ts";
+    import GameChoice from "./GameChoice.svelte";
     import { Story } from "inkjs";
     // https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#getting-started-with-the-runtime-api
 
-    const { gameNetwork } = $props<{
+    const { gameNetwork, gameFile } = $props<{
         gameNetwork: GameNetwork;
+        gameFile: string;
     }>();
     let texts: string[] = $state([]);
     let choices: { title: string; index: number }[] = $state([]);
+    let onChoiceChange: () => void = $state(() => {});
 
     let story: Story;
 
@@ -18,6 +21,7 @@
             });
         }
         if (Array.isArray(data.choices)) {
+            onChoiceChange();
             choices = data.choices.map((choice: any) => ({
                 title: choice.title,
                 index: choice.index,
@@ -47,6 +51,7 @@
             }
         }
         if (story.currentChoices.length > 0) {
+            onChoiceChange();
             choices.push(
                 ...story.currentChoices.map((choice, index) => ({
                     title: choice.text,
@@ -64,11 +69,14 @@
     }
 
     if (gameNetwork.isHost) {
-        fetch("/intercept.json")
+        fetch("/" + gameFile)
             .then((response) => response.text())
             .then((storyContent) => {
                 story = new Story(storyContent);
                 runStory();
+            })
+            .catch((error) => {
+                alert("Error loading story:" + error);
             });
     } else {
         console.log("Waiting for host to start the story...");
@@ -106,14 +114,11 @@
         <p class="mb-2">{text}</p>
     {/each}
 
-    <div class="flex flex-row flex-wrap">
-        {#each choices as choice}
-            <button
-                class="m-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-                onclick={() => runStory(choice.index)}
-            >
-                {choice.title}
-            </button>
-        {/each}
-    </div>
+    <GameChoice
+        {gameNetwork}
+        {choices}
+        voteMode="all-must-approve"
+        onValidated={runStory}
+        provideResetFunction={(reset) => (onChoiceChange = reset)}
+    />
 </div>

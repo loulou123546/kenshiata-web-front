@@ -10,7 +10,7 @@
     import SmallPlayerCard from "./SmallPlayerCard.svelte";
     import UserPairing from "./UserPairing.svelte";
     import { NetworkFactory } from "../services/networkFactory.ts";
-    import { user, getAvatarSource } from "../models/user.ts";
+    import { user, getAvatarSource, players } from "../models/user.ts";
     import { GameNetwork } from "../models/GameNetwork.ts";
 
     const { socket, socketReady, onNetworkReady } = $props<{
@@ -66,6 +66,7 @@
                     playerTarget = undefined;
                 },
                 onConnection: (inst: GameNetwork) => {
+                    players.set([user.get(), target.user]);
                     onNetworkReady(inst);
                 },
                 onError: (error: Error) => {
