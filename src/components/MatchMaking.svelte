@@ -59,19 +59,20 @@
                 me: user.get(),
                 target,
                 onApproval: () => {
-                    players.set([user.get(), target.user]);
+                    console.log("Joueurs connectés :", players.get());
                     console.log("Partie acceptée");
                 },
                 onRefusal: () => {
                     console.log("Refus de la partie");
                     playerTarget = undefined;
-                    players.set([]);
                 },
                 onConnection: (inst: GameNetwork) => {
+                    players.set([user.get(), target.user]);
                     onNetworkReady(inst);
                 },
                 onError: (error: Error) => {
                     console.error("Erreur de connexion :", error);
+                    players.set([user.get(), target.user]);
                     onNetworkReady(
                         startUsingGameNetworkWithSocket(
                             alernativeGN,
@@ -81,6 +82,7 @@
                     );
                 },
                 onTimeout: () => {
+                    players.set([user.get(), target.user]);
                     onNetworkReady(
                         startUsingGameNetworkWithSocket(
                             alernativeGN,
