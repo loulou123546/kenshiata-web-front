@@ -59,14 +59,15 @@
                 me: user.get(),
                 target,
                 onApproval: () => {
+                    players.set([user.get(), target.user]);
                     console.log("Partie acceptée");
                 },
                 onRefusal: () => {
                     console.log("Refus de la partie");
                     playerTarget = undefined;
+                    players.set([]);
                 },
                 onConnection: (inst: GameNetwork) => {
-                    players.set([user.get(), target.user]);
                     onNetworkReady(inst);
                 },
                 onError: (error: Error) => {
