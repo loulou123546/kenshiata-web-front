@@ -38,7 +38,13 @@
     {#if editingUser}
         <CreatePlayer whenready={onSaveUser} />
     {:else}
-        <header class="flex flex-row justify-end">
+        <header class="flex flex-row justify-center items-center">
+            {#if gameFile}
+                <h1 class="text-2xl font-semibold pl-16 pr-4">
+                    {gameFile.replace(".json", "")}
+                </h1>
+            {/if}
+            <div class="grow"></div>
             <SmallPlayerCard user={me} onclick={() => (editingUser = true)} />
         </header>
         {#if gameNetwork}

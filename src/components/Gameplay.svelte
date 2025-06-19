@@ -69,15 +69,17 @@
     }
 
     if (gameNetwork.isHost) {
-        fetch("/" + gameFile)
-            .then((response) => response.text())
-            .then((storyContent) => {
-                story = new Story(storyContent);
-                runStory();
-            })
-            .catch((error) => {
-                alert("Error loading story:" + error);
-            });
+        setTimeout(() => {
+            fetch("/" + gameFile)
+                .then((response) => response.text())
+                .then((storyContent) => {
+                    story = new Story(storyContent);
+                    runStory();
+                })
+                .catch((error) => {
+                    alert("Error loading story:" + error);
+                });
+        }, 100);
     } else {
         console.log("Waiting for host to start the story...");
     }

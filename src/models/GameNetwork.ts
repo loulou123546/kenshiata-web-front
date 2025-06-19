@@ -9,7 +9,7 @@ export class GameNetwork {
 
     constructor(isHost: boolean) {
         this.addListener("ping", () => {
-            this.send("pong", {});
+            this.internal_send("pong", {});
         });
         this.addListener("pong", () => {
             this.receivedPong = true;
@@ -38,7 +38,12 @@ export class GameNetwork {
         this.listeners[action].push(callback);
     }
 
-    public send(action: string, data: any): Promise<void> {
+    public async send(action: string, data: any): Promise<void> {
+        if (!this.ready) await this.waitForReady();
+        return this.internal_send(action, data);
+    }
+
+    private internal_send(action: string, data: any): Promise<void> {
         if (!this.sendFunction) {
             const prom = new Promise<void>((resolve) => {
                 this.msgQueue.push({ action, data, onSent: resolve });
