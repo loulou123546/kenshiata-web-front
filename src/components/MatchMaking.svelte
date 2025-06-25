@@ -1,184 +1,210 @@
 <script lang="ts">
-    import SocketAPI, {
-        prepareGameNetworkFromSocket,
-        startUsingGameNetworkWithSocket,
-    } from "../services/socketAPI.ts";
-    import {
-        type NetworkUser,
-        listNetworkUsers,
-    } from "../models/networkUsers.ts";
-    import SmallPlayerCard from "./SmallPlayerCard.svelte";
-    import UserPairing from "./UserPairing.svelte";
-    import { NetworkFactory } from "../services/networkFactory.ts";
-    import { user, getAvatarSource, players } from "../models/user.ts";
-    import { GameNetwork } from "../models/GameNetwork.ts";
+    import SocketAPI from "../services/socketAPI";
+    import List from "./GameRooms/list.svelte";
+    import Create from "./GameRooms/create.svelte";
 
-    const { socket, socketReady, onNetworkReady } = $props<{
-        socket: SocketAPI;
-        socketReady: boolean;
-        onNetworkReady: (instance: GameNetwork) => void;
-    }>();
-    let users: NetworkUser[] = $state([]);
-    let playerTarget: NetworkUser | undefined = $state(undefined);
-    let receivedRequest: NetworkUser | undefined = $state(undefined);
-    let stepPairing: string = $state("unknown");
-
-    socket.addListener("play-together-request", (data: any) => {
-        console.log("Requête de jeu reçue :", data);
-        const { from, target } = data;
-        if (playerTarget || receivedRequest) {
-            socket.send("play-together-response", {
-                from: target,
-                target: from,
-                accept: false,
-            });
-        } else {
-            receivedRequest = from;
-        }
-    });
-
-    (async () => {
-        users = await listNetworkUsers();
-        setInterval(async () => {
-            users = await listNetworkUsers();
-        }, 5000);
-    })();
-
-    function playWith(target: NetworkUser, isHost: boolean) {
-        if (socketReady) {
-            receivedRequest = undefined;
-            playerTarget = target;
-            const alernativeGN = prepareGameNetworkFromSocket(
-                isHost,
-                socket,
-                target.socketId,
-            );
-            new NetworkFactory({
-                isHost,
-                socket,
-                me: user.get(),
-                target,
-                onApproval: () => {
-                    console.log("Joueurs connectés :", players.get());
-                    console.log("Partie acceptée");
-                },
-                onRefusal: () => {
-                    console.log("Refus de la partie");
-                    playerTarget = undefined;
-                },
-                onConnection: (inst: GameNetwork) => {
-                    players.set([user.get(), target.user]);
-                    onNetworkReady(inst);
-                },
-                onError: (error: Error) => {
-                    console.error("Erreur de connexion :", error);
-                    players.set([user.get(), target.user]);
-                    onNetworkReady(
-                        startUsingGameNetworkWithSocket(
-                            alernativeGN,
-                            socket,
-                            target.socketId,
-                        ),
-                    );
-                },
-                onTimeout: () => {
-                    players.set([user.get(), target.user]);
-                    onNetworkReady(
-                        startUsingGameNetworkWithSocket(
-                            alernativeGN,
-                            socket,
-                            target.socketId,
-                        ),
-                    );
-                },
-                onStepChange: (step: string) => {
-                    stepPairing = step;
-                },
-                logger: console.log,
-            });
-        }
-    }
+    const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
 </script>
 
 <div class="w-full p-4">
     <div class="bg-gray-800 text-white w-full p-8 rounded-xl">
-        {#if !socketReady}
+        {#await socketP.then(async (socket) => {
+            await socket.waitReady();
+            return socket;
+        })}
+            <!-- https://uiverse.io/mobinkakei/pink-deer-76 -->
+            <div id="wifi-loader" class="mx-auto">
+                <svg class="circle-outer" viewBox="0 0 86 86">
+                    <circle class="back" cx="43" cy="43" r="40"></circle>
+                    <!-- <circle class="front" cx="43" cy="43" r="40"></circle> -->
+                    <circle class="new" cx="43" cy="43" r="40"></circle>
+                </svg>
+                <svg class="circle-middle" viewBox="0 0 60 60">
+                    <circle class="back" cx="30" cy="30" r="27"></circle>
+                    <!-- <circle class="front" cx="30" cy="30" r="27"></circle> -->
+                </svg>
+                <svg class="circle-inner" viewBox="0 0 34 34">
+                    <circle class="back" cx="17" cy="17" r="14"></circle>
+                    <!-- <circle class="front" cx="17" cy="17" r="14"></circle> -->
+                </svg>
+            </div>
+
             <h2 class="text-2xl text-center py-4">Connexion au serveur...</h2>
-        {:else if playerTarget}
-            <h2 class="text-2xl text-center py-4">Connexion en cours...</h2>
-            <UserPairing
-                me={user.get()}
-                target={playerTarget.user}
-                step={stepPairing}
-            />
-        {:else if receivedRequest}
-            <h2 class="text-2xl text-center py-4">Demande de jeu reçue</h2>
-            <div class="w-full flex flex-row items-center justify-center">
-                <div
-                    class="py-2 px-6 m-2 lg:m-8 rounded-xl shadow-lg flex flex-col w-fit bg-gray-200 text-black items-center justify-center gap-4"
-                >
-                    <div
-                        class="flex flex-row items-center justify-center w-fit"
-                    >
-                        <img
-                            class="w-14 h-14 rounded-full"
-                            src={getAvatarSource(receivedRequest.user.avatar)}
-                            alt="Avatar de {receivedRequest.user.username}"
-                        />
-                        <h3 class="text-xl mx-4">
-                            {receivedRequest.user.username}
-                        </h3>
-                    </div>
-                    <div
-                        class="flex flex-row items-center justify-center gap-4"
-                    >
-                        <button
-                            class="px-4 py-2 bg-green-500 hover:bg-green-600"
-                            onclick={() =>
-                                playWith(receivedRequest as NetworkUser, false)}
-                        >
-                            Accepter et jouer avec {receivedRequest.user
-                                .username}
-                        </button>
-                        <button
-                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
-                            onclick={() => {
-                                socket.send("play-together-response", {
-                                    from: {
-                                        socketId: socket.socketId,
-                                        user: user.get(),
-                                    },
-                                    target: receivedRequest,
-                                    accept: false,
-                                });
-                                receivedRequest = undefined;
-                            }}
-                        >
-                            Refuser la demande de jeu
-                        </button>
-                    </div>
+        {:then socket}
+            <h2 class="text-2xl text-center py-4">Commencer à jouer !</h2>
+
+            <div class="w-full flex flex-row">
+                <div class="w-3/4">
+                    <h3 class="text-xl text-center">Rejoindre une partie</h3>
+                    <List {socket} />
+                </div>
+                <div class="w-1/4">
+                    <Create {socket} />
                 </div>
             </div>
-        {:else}
-            <h2 class="text-2xl text-center py-4">Commencer à jouer !</h2>
-            <h3 class="text-gray-300 text-center">
-                Pour le moment, les parties sont limités à 2 joueurs.<br />
-                Cliquez sur un joueur pour l'inviter à jouer avec vous.
-            </h3>
-
-            <div class="flex flex-row flex-wrap gap-6 p-8 justify-center">
-                {#each users as user}
-                    {#if user.socketId !== socket.socketId}
-                        <button>
-                            <SmallPlayerCard
-                                user={user.user}
-                                onclick={() => playWith(user, true)}
-                                customClass="bg-gray-400 text-black hover:bg-gray-500"
-                            />
-                        </button>
-                    {/if}
-                {/each}
-            </div>
-        {/if}
+        {:catch error}
+            <h2 class="text-2xl text-center py-4 text-red-500">
+                Erreur de connexion : {error.message}
+            </h2>
+        {/await}
     </div>
 </div>
+
+<style>
+    #wifi-loader {
+        --background: #62abff;
+        /* --front-color: #4f29f0; */
+        /* --back-color: #c3c8de; */
+        --back-color: #d0d2df;
+        --text-color: #414856;
+        width: 64px;
+        height: 64px;
+        border-radius: 50px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #wifi-loader svg {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #wifi-loader svg circle {
+        position: absolute;
+        fill: none;
+        stroke-width: 6px;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transform: rotate(-100deg);
+        transform-origin: center;
+    }
+
+    #wifi-loader svg circle.back {
+        stroke: var(--back-color);
+    }
+
+    /* #wifi-loader svg circle.front {
+        stroke: var(--front-color);
+    } */
+
+    #wifi-loader svg.circle-outer {
+        height: 86px;
+        width: 86px;
+    }
+
+    #wifi-loader svg.circle-outer circle {
+        stroke-dasharray: 62.75 188.25;
+    }
+
+    #wifi-loader svg.circle-outer circle.back {
+        animation: circle-outer135 1.8s ease infinite 0.3s;
+    }
+
+    /* #wifi-loader svg.circle-outer circle.front {
+        animation: circle-outer135 1.8s ease infinite 0.15s;
+    } */
+
+    #wifi-loader svg.circle-middle {
+        height: 60px;
+        width: 60px;
+    }
+
+    #wifi-loader svg.circle-middle circle {
+        stroke-dasharray: 42.5 127.5;
+    }
+
+    #wifi-loader svg.circle-middle circle.back {
+        animation: circle-middle6123 1.8s ease infinite 0.25s;
+    }
+
+    /* #wifi-loader svg.circle-middle circle.front {
+        animation: circle-middle6123 1.8s ease infinite 0.1s;
+    } */
+
+    #wifi-loader svg.circle-inner {
+        height: 34px;
+        width: 34px;
+    }
+
+    #wifi-loader svg.circle-inner circle {
+        stroke-dasharray: 22 66;
+    }
+
+    #wifi-loader svg.circle-inner circle.back {
+        animation: circle-inner162 1.8s ease infinite 0.2s;
+    }
+
+    /* #wifi-loader svg.circle-inner circle.front {
+        animation: circle-inner162 1.8s ease infinite 0.05s;
+    } */
+
+    @keyframes circle-outer135 {
+        0% {
+            stroke-dashoffset: 25;
+        }
+
+        25% {
+            stroke-dashoffset: 0;
+        }
+
+        65% {
+            stroke-dashoffset: 301;
+        }
+
+        80% {
+            stroke-dashoffset: 276;
+        }
+
+        100% {
+            stroke-dashoffset: 276;
+        }
+    }
+
+    @keyframes circle-middle6123 {
+        0% {
+            stroke-dashoffset: 17;
+        }
+
+        25% {
+            stroke-dashoffset: 0;
+        }
+
+        65% {
+            stroke-dashoffset: 204;
+        }
+
+        80% {
+            stroke-dashoffset: 187;
+        }
+
+        100% {
+            stroke-dashoffset: 187;
+        }
+    }
+
+    @keyframes circle-inner162 {
+        0% {
+            stroke-dashoffset: 9;
+        }
+
+        25% {
+            stroke-dashoffset: 0;
+        }
+
+        65% {
+            stroke-dashoffset: 106;
+        }
+
+        80% {
+            stroke-dashoffset: 97;
+        }
+
+        100% {
+            stroke-dashoffset: 97;
+        }
+    }
+</style>

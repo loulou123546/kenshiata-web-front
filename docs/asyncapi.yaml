@@ -1,0 +1,415 @@
+asyncapi: 3.0.0
+info:
+  title: Kenshiata Game WebSocket
+  version: 1.0.0
+  description: >
+    This API is used for the game Kenshiata, it's accessible publicly but you
+    need to authentify on connect or you will not have access to any other
+    message than `authenticate`
+  contact:
+    name: Kenshiata.studio
+    url: 'https://kenshiata.studio/'
+  tags:
+    - $ref: '#/components/tags/in-game'
+    - $ref: '#/components/tags/authentication'
+defaultContentType: application/json
+
+servers:
+  websocket:
+    host: ws.kenshiata.studio
+    protocol: wss
+    description: Handle real-time exchange about games
+  api:
+    host: api.kenshiata.studio
+    protocol: https
+    description: Handle one-time request and standard API call
+
+channels:
+  connect:
+    address: connect?token={token}
+    servers:
+      - $ref: '#/servers/websocket'
+    parameters:
+      token:
+        description: The base64 encoded token provided by the API after a successful login.
+
+  create-game-room:
+    title: Create a new game room, and join it immediately
+    address: create-game-room
+    servers:
+      - $ref: "#/servers/websocket"
+    messages:
+      create-game-room:
+        $ref: "#/components/messages/create-game-room"
+
+  request-join-room:
+    title: Triggered by a user to ask to join a game room
+    address: request-join-room
+    servers:
+      - $ref: "#/servers/websocket"
+    messages:
+      request-join-room:
+        $ref: "#/components/messages/request-join-room"
+
+  respond-join-room:
+    title: Respond with positive or negative answer to a player who asked to join a
+      room
+    address: respond-join-room
+    servers:
+      - $ref: "#/servers/websocket"
+    messages:
+      respond-join-room:
+        $ref: "#/components/messages/respond-join-room"
+
+  invite-to-room:
+    title: Ask a player if they want to join a room
+    address: invite-to-room
+    servers:
+      - $ref: "#/servers/websocket"
+    messages:
+      invite-to-room:
+        $ref: "#/components/messages/invite-to-room"
+
+  respond-to-invite:
+    title: Player send to server that they accept or decline to join a room
+    address: respond-to-invite
+    servers:
+      - $ref: "#/servers/websocket"
+    messages:
+      respond-to-invite:
+        $ref: "#/components/messages/respond-to-invite"
+
+  list-game-rooms:
+    $ref: "#/components/channels/list-game-rooms"
+    title: List game rooms available to join
+    address: list-game-rooms
+    servers:
+      - $ref: "#/servers/websocket"
+    messages:
+      list-game-rooms:
+        $ref: "#/components/messages/list-game-rooms"
+  update-game-rooms:
+    title: Update the list of game rooms available to join
+    address: update-game-rooms
+    servers:
+      - $ref: "#/servers/websocket"
+    messages:
+      update-game-rooms:
+        $ref: "#/components/messages/update-game-rooms"
+
+operations:
+  openSocket:
+    title: Authenticate as a player
+    summary: Open websocket connexion and associate the socket to a player.
+    action: send
+    tags:
+      - $ref: '#/components/tags/authentication'
+    channel:
+      $ref: '#/channels/connect'
+
+  list-game-rooms:
+    title: List game rooms available to join
+    summary: Will return rooms publicly available and rooms where user is invited.
+    action: send
+    channel:
+      $ref: "#/channels/list-game-rooms"
+    messages:
+      - $ref: "#/channels/list-game-rooms/messages/list-game-rooms"
+    reply:
+      channel:
+        $ref: "#/channels/update-game-rooms"
+      messages:
+        - $ref: "#/channels/update-game-rooms/messages/update-game-rooms"
+  create-game-room:
+    title: Create a new game room, and join it immediately
+    summary: Inactive game rooms are deleted after 15 minutes of inactivity
+    action: send
+    channel:
+      $ref: "#/channels/create-game-room"
+    messages:
+      - $ref: "#/channels/create-game-room/messages/create-game-room"
+  request-join-room:
+    title: Triggered by a user to ask to join a game room
+    summary: Request will be forwarded to the room owner for approval.
+    action: send
+    channel:
+      $ref: "#/channels/request-join-room"
+    messages:
+      - $ref: "#/channels/request-join-room/messages/request-join-room"
+  respond-join-room:
+    title: Respond with positive or negative answer to a player who asked to join a
+      room
+    summary: Request will be forwarded to the room owner for approval. In case of
+      positive answer, user will be added to the room immedialty
+    action: send
+    channel:
+      $ref: "#/channels/respond-join-room"
+    messages:
+      - $ref: "#/channels/respond-join-room/messages/respond-join-room"
+  invite-to-room:
+    title: Ask a player if they want to join a room
+    summary: Request is made by room player, and is forwarded by server to player if
+      online.
+    action: send
+    channel:
+      $ref: "#/channels/invite-to-room"
+    messages:
+      - $ref: "#/channels/invite-to-room/messages/invite-to-room"
+  respond-to-invite:
+    title: Player send to server that they accept or decline to join a room
+    summary: Request is made by player, and is forwarded by server to room owner. In
+      case he accept, it's added directly into room.
+    action: send
+    channel:
+      $ref: "#/channels/respond-to-invite"
+    messages:
+      - $ref: "#/channels/respond-to-invite/messages/respond-to-invite"
+  update-game-rooms:
+    title: Update the list of game rooms available to join
+    summary: Will be sent by server when user ask for list of game rooms, or when
+      new room are available / removed.
+    action: receive
+    channel:
+      $ref: "#/channels/update-game-rooms"
+    messages:
+      - $ref: "#/channels/update-game-rooms/messages/update-game-rooms"
+  send:request-join-room:
+    title: Triggered by a user to ask to join a game room
+    summary: User can send their this message to ask to join a room. Owner of room
+      will receive this message for approval.
+    action: send
+    channel:
+      $ref: "#/channels/request-join-room"
+    messages:
+      - $ref: "#/channels/request-join-room/messages/request-join-room"
+  receive:request-join-room:
+    title: Triggered by a user to ask to join a game room
+    summary: User can send their this message to ask to join a room. Owner of room
+      will receive this message for approval.
+    action: receive
+    channel:
+      $ref: "#/channels/request-join-room"
+    messages:
+      - $ref: "#/channels/request-join-room/messages/request-join-room"
+  send:respond-join-room:
+    title: Respond with positive or negative answer to a player who asked to join a
+      room
+    summary: Message is sent by room owner and received by user who asked to join.
+      In case of positive answer, user will be added to the room immedialty
+    action: send
+    channel:
+      $ref: "#/channels/respond-join-room"
+    messages:
+      - $ref: "#/channels/respond-join-room/messages/respond-join-room"
+  receive:respond-join-room:
+    title: Respond with positive or negative answer to a player who asked to join a
+      room
+    summary: Message is sent by room owner and received by user who asked to join.
+      In case of positive answer, user will be added to the room immedialty
+    action: receive
+    channel:
+      $ref: "#/channels/respond-join-room"
+    messages:
+      - $ref: "#/channels/respond-join-room/messages/respond-join-room"
+  send:invite-to-room:
+    title: Ask a player if they want to join a room
+    summary: Message is sent by room player, and is forwarded by server to player if
+      online.
+    action: send
+    channel:
+      $ref: "#/channels/invite-to-room"
+    messages:
+      - $ref: "#/channels/invite-to-room/messages/invite-to-room"
+  receive:invite-to-room:
+    title: Ask a player if they want to join a room
+    summary: Message is sent by room player, and is forwarded by server to player if
+      online.
+    action: receive
+    channel:
+      $ref: "#/channels/invite-to-room"
+    messages:
+      - $ref: "#/channels/invite-to-room/messages/invite-to-room"
+  send:respond-to-invite:
+    title: Player send to server that they accept or decline to join a room
+    summary: Message is sent by user, and is forwarded by server to room owner. In
+      case he accept, it's added directly into room.
+    action: send
+    channel:
+      $ref: "#/channels/respond-to-invite"
+    messages:
+      - $ref: "#/channels/respond-to-invite/messages/respond-to-invite"
+  receive:respond-to-invite:
+    title: Player send to server that they accept or decline to join a room
+    summary: Message is sent by user, and is forwarded by server to room owner. In
+      case he accept, it's added directly into room.
+    action: receive
+    channel:
+      $ref: "#/channels/respond-to-invite"
+    messages:
+      - $ref: "#/channels/respond-to-invite/messages/respond-to-invite"
+
+components:
+  tags:
+    in-game:
+      name: In-Game
+      description: Messages related to in-game actions, such as voting or game state
+        updates.
+    authentication:
+      name: Authentication
+      description: Messages related to player authentication and session management.
+  channels:
+    list-game-rooms:
+      address: list-game-rooms
+      servers:
+        - $ref: "#/servers/websocket"
+      messages:
+        list-game-rooms:
+          title: List game rooms available to join
+          summary: Will return rooms publicly available and rooms where user is invited.
+          payload:
+            type: object
+            properties:
+              action:
+                type: string
+                enum:
+                  - list-game-rooms
+  messages:
+    list-game-rooms:
+      title: List game rooms available to join
+      summary: Will return rooms publicly available and rooms where user is invited.
+      payload:
+        type: object
+        properties:
+          action:
+            type: string
+            enum:
+              - list-game-rooms
+    create-game-room:
+      title: Create a new game room, and join it immediately
+      summary: Inactive game rooms are deleted after 15 minutes of inactivity
+      payload:
+        type: object
+        properties:
+          action:
+            type: string
+            enum:
+              - create-game-room
+          public:
+            type: boolean
+            description: If true, the room will be publicly available to join, else only
+              players who have been invited will be able to join the room.
+            default: false
+    request-join-room:
+      title: Triggered by a user to ask to join a game room
+      summary: User can send their this message to ask to join a room. Owner of room
+        will receive this message for approval.
+      payload:
+        type: object
+        properties:
+          action:
+            type: string
+            enum:
+              - request-join-room
+          roomId:
+            type: string
+            description: The id of the room to join
+          userId:
+            type: string
+            description: Only present when received by the room owner, contain userId of
+              user asking to join the room
+    respond-join-room:
+      title: Respond with positive or negative answer to a player who asked to join a
+        room
+      summary: Message is sent by room owner and received by user who asked to join.
+        In case of positive answer, user will be added to the room immedialty
+      payload:
+        type: object
+        properties:
+          action:
+            type: string
+            enum:
+              - respond-join-room
+          roomId:
+            type: string
+            description: The id of the room to join
+          userId:
+            type: string
+            description: The id of the user who asked to join the room
+          accept:
+            type: boolean
+            description: If true, the user will be allowed to join the room, else they will
+              not be able to join
+    invite-to-room:
+      title: Ask a player if they want to join a room
+      summary: Message is sent by room player, and is forwarded by server to player if
+        online.
+      payload:
+        type: object
+        properties:
+          action:
+            type: string
+            enum:
+              - invite-to-room
+          roomId:
+            type: string
+            description: The id of the room to invite user to
+          userId:
+            type: string
+            description: The id of the user who is invited to join the room
+    respond-to-invite:
+      title: Player send to server that they accept or decline to join a room
+      summary: Message is sent by user, and is forwarded by server to room owner. In
+        case he accept, it's added directly into room.
+      payload:
+        type: object
+        properties:
+          action:
+            type: string
+            enum:
+              - respond-to-invite
+          roomId:
+            type: string
+            description: The id of the room to join
+          userId:
+            type: string
+            description: The id of the user who accepted the invite
+          accept:
+            type: boolean
+            description: If true, the user accepted to join the room, else they declined the
+              invite
+    update-game-rooms:
+      title: Update the list of game rooms available to join
+      summary: Will be sent by server when user ask for list of game rooms, or when
+        new room are available / removed.
+      payload:
+        type: object
+        properties:
+          action:
+            type: string
+            enum:
+              - update-game-rooms
+          rooms:
+            type: array
+            description: List of rooms available to join
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The id of the room
+                name:
+                  type: string
+                  description: The name of the room
+                owner:
+                  type: string
+                  description: The id of the room owner
+                public:
+                  type: boolean
+                  description: If true, the room is publicly available to join, else only players
+                    who have been invited will be able to join the room.
+                players:
+                  type: array
+                  description: List of players in the room
+                  items:
+                    type: string
+                    description: The id of the player

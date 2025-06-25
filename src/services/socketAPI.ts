@@ -1,18 +1,19 @@
 import type { User } from "../models/user";
+import { getUserData } from "./auth";
 import { GameNetwork } from "../models/GameNetwork";
+
+type Logger = (...data: any[]) => void;
 
 export default class SocketAPI {
 	private socket: WebSocket | null = null;
 	private listeners: { [key: string]: ((data: any) => void)[] } = {};
-	private socketId: string | null = null;
-	private resolveAfterWhoami: (value: string) => void = () => {};
-	private logger: (...data: any[]) => void = console.log;
+	private logger: Logger = console.log;
 
-	constructor({logger}: { logger?: (...data: any[]) => void } = {}) {
+	constructor({logger, token}: { logger?: Logger; token: string }) {
 		if (logger) this.logger = logger;
 		if (!import.meta.env.PUBLIC_WEBSOKET) throw new Error("PUBLIC_WEBSOKET variable is not defined");
 
-		this.socket = new WebSocket(import.meta.env.PUBLIC_WEBSOKET);
+		this.socket = new WebSocket(`${import.meta.env.PUBLIC_WEBSOKET}?token=${token}`);
 		// La connexion est ouverte
 		this.socket.addEventListener("open", (event) => {
 			this.logger("WebSocket: connection opened");
@@ -27,25 +28,13 @@ export default class SocketAPI {
 				});
 			}
 		});
-		this.addListener("whoami", (data: any) => {
-			if (!data || !data.socketId)
-				this.logger("WebSocket: Invalid data received for 'whoami':", data);
-			this.socketId = data.socketId;
-			this.logger("WebSocket: whoami received, socketId:", this.socketId);
-			this.resolveAfterWhoami?.(data.socketId);
-			this.resolveAfterWhoami = (_a) => {}; // promise should only resolve once
-		});
 	}
 
 	public get ready() {
 		return this.socket && this.socket.readyState === WebSocket.OPEN;
 	}
 
-	public get socketID() {
-		return this.socketId;
-	}
-
-	public async connected(): Promise<void> {
+	public async waitReady(): Promise<void> {
 		if (this.ready) return Promise.resolve();
 		return new Promise((resolve, reject) => {
 			if (!this.socket) {
@@ -58,23 +47,8 @@ export default class SocketAPI {
 		});
 	}
 
-	public authenticate(user: User): Promise<string> {
-		if (!this.socket || !this.ready) throw new Error("Socket is not ready");
-		const prom = new Promise<string>((resolve) => {
-			this.resolveAfterWhoami = resolve;
-		});
-		this.socket.send(
-			JSON.stringify({
-				action: "set-player",
-				user
-			}),
-		);
-		this.logger("WebSocket: authenticate with username:", user.username);
-		return prom;
-	}
-
 	public close() {
-		if (!this.socket || !this.ready) throw new Error("Socket is not ready");
+		if (!this.socket) throw new Error("Socket is not ready");
 		this.socket.close();
 	}
 
@@ -92,24 +66,22 @@ export default class SocketAPI {
 		if (!this.listeners[action]) this.listeners[action] = [];
 		this.listeners[action].push(callback);
 	}
-}
 
-export function prepareGameNetworkFromSocket(isHost: boolean, socket: SocketAPI, targetID: string): GameNetwork {
-	const gn = new GameNetwork(isHost);
-	socket.addListener("game-data", (data: any) => {
-		if (data.internal_action) {
-			gn.internal_receivedMessage(data.internal_action, data);
-		} else {
-			gn.internal_receivedMessage("default", data);
+	public static async create(logger?: Logger): Promise<SocketAPI> {
+		const user = await getUserData();
+		if (!user || !user?.token) throw new Error("User is not authenticated");
+		const res = await fetch(`${import.meta.env.PUBLIC_API_DOMAIN}/open-socket`, {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${user.token}`,
+			},
+			mode: "cors",
+		});
+		const data = await res.json();
+		if (!res.ok || !data?.data?.token) {
+			throw new Error("Server declined the socket connection");
 		}
-	});
-	return gn;
-}
-
-export function startUsingGameNetworkWithSocket(gn: GameNetwork, socket: SocketAPI, targetID: string): GameNetwork {
-	gn.internal_registerSendfunction((action: string, data: any) => {
-		socket.send("game-data", {...data, internal_action: action, targetID});
-	});
-	socket.send("game-data", {internal_action: "ping", targetID});
-	return gn;
+		const socket = new SocketAPI({ logger, token: data.data.token });
+		return socket;
+	}
 }

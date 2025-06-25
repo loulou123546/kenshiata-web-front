@@ -5,16 +5,21 @@
     import MatchMaking from "../../components/MatchMaking.svelte";
     import Gameplay from "../../components/Gameplay.svelte";
     import ChooseGameFile from "../../components/ChooseGameFile.svelte";
+    import LoginWall from "../../components/LoginWall.svelte";
+    import CharacterLibrary from "../../components/Characters/MyLibrary.svelte";
     import SocketAPI from "../../services/socketAPI.ts";
     import type { GameNetwork } from "../../models/GameNetwork.ts";
+    import { getUserData } from "../../services/auth.ts";
 
     const { stories } = $props<{
         stories: string[];
     }>();
 
+    let okLogin: boolean = $state(false);
+
     let me: User = $state(user.get());
     let editingUser: boolean = $state(user.get().username === "");
-    let socket = $state<SocketAPI>(new SocketAPI());
+    // let socket = $state<SocketAPI>(new SocketAPI());
     let authentificationDone: boolean = $state(false);
     let gameNetwork: GameNetwork | undefined = $state(undefined);
     let gameFile: string | undefined = $state(undefined);
@@ -23,8 +28,8 @@
         authentificationDone = false;
         me = user.get();
         editingUser = false;
-        await socket.connected();
-        await socket.authenticate(me);
+        // await socket.connected();
+        // await socket.authenticate(me);
         authentificationDone = true;
     }
 
@@ -34,9 +39,11 @@
     }
 </script>
 
-<main>
-    {#if editingUser}
-        <CreatePlayer whenready={onSaveUser} />
+<main class="p-8">
+    {#if !okLogin}
+        <LoginWall whenLoginOK={() => (okLogin = true)} />
+        <!-- {:else if editingUser}
+        <CreatePlayer whenready={onSaveUser} /> -->
     {:else}
         <header class="flex flex-row justify-center items-center">
             {#if gameFile}
@@ -45,8 +52,9 @@
                 </h1>
             {/if}
             <div class="grow"></div>
-            <SmallPlayerCard user={me} onclick={() => (editingUser = true)} />
+            <!-- <SmallPlayerCard user={me} onclick={() => (editingUser = true)} /> -->
         </header>
+        <CharacterLibrary />
         {#if gameNetwork}
             {#if gameFile}
                 <Gameplay {gameNetwork} {gameFile} />
@@ -58,11 +66,11 @@
                 />
             {/if}
         {:else}
-            <MatchMaking
-                {socket}
+            <!-- <MatchMaking
                 socketReady={authentificationDone}
                 onNetworkReady={(instance) => (gameNetwork = instance)}
-            />
+            /> -->
+            <MatchMaking />
         {/if}
     {/if}
 </main>

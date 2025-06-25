@@ -1,0 +1,111 @@
+messages:
+  - action: list-game-rooms
+    mode: send
+    title: List game rooms available to join
+    description: Will return rooms publicly available and rooms where user is invited.
+    properties: {}
+    reply: update-game-rooms
+
+  - action: update-game-rooms
+    mode: receive
+    title: Update the list of game rooms available to join, and list of removed rooms
+    description: Will be sent by server when user ask for list of game rooms, or when new room are available / removed.
+    properties:
+      updateRooms:
+        type: array
+        description: List of rooms available to join
+        items:
+          type: object
+          properties:
+            hostid:
+              type: string
+              description: The id of the owner of the room, which is also the room id
+            name:
+              type: string
+              description: The name of the room
+            public:
+              type: boolean
+              description: If true, the room is publicly available to join, else only players who have been invited will be able to join the room.
+            players:
+              type: array
+              description: List of players in the room
+              items:
+                type: string
+                description: The id of the player
+            invited:
+              type: array
+              description: List of players invited to the room, but not yet joined
+              items:
+                type: string
+                description: The id of the player
+      removedRooms:
+        type: array
+        description: List of rooms that have been removed
+        items:
+          type: string
+          description: The id of the room that has been removed
+
+  - action: create-game-room
+    mode: send
+    title: Create a new game room, and join it immediately
+    description: Inactive game rooms are deleted after 15 minutes of inactivity
+    properties:
+      public:
+        type: boolean
+        description: If true, the room will be publicly available to join, else only players who have been invited will be able to join the room.
+        default: false
+
+  - action: request-join-room
+    mode: both
+    title: Triggered by a user to ask to join a game room
+    description: User can send their this message to ask to join a room. Owner of room will receive this message for approval.
+    properties:
+      roomId:
+        type: string
+        description: The id of the room to join
+      userId:
+        type: string
+        description: Only present when received by the room owner, contain userId of user asking to join the room
+
+  - action: respond-join-room
+    mode: both
+    title: Respond with positive or negative answer to a player who asked to join a
+      room
+    description: Message is sent by room owner and received by user who asked to join. In case of positive answer, user will be added to the room immedialty
+    properties:
+      roomId:
+        type: string
+        description: The id of the room to join
+      userId:
+        type: string
+        description: The id of the user who asked to join the room
+      accept:
+        type: boolean
+        description: If true, the user will be allowed to join the room, else they will not be able to join
+
+  - action: invite-to-room
+    mode: both
+    title: Ask a player if they want to join a room
+    description: Message is sent by room player, and is forwarded by server to player if online.
+    properties:
+      roomId:
+        type: string
+        description: The id of the room to invite user to
+      userId:
+        type: string
+        description: The id of the user who is invited to join the room
+
+  - action: respond-to-invite
+    mode: both
+    title: Player send to server that they accept or decline to join a room
+    description: Message is sent by user, and is forwarded by server to room owner. In case he accept, it's added directly into room.
+    properties:
+      roomId:
+        type: string
+        description: The id of the room to join
+      userId:
+        type: string
+        description: The id of the user who accepted the invite
+      accept:
+        type: boolean
+        description: If true, the user accepted to join the room, else they declined the invite

@@ -1,5 +1,5 @@
 
-import WebRTCAPI from "../services/webrtc";
+// import WebRTCAPI from "../services/webrtc";
 import { User } from "../models/user.ts";
 import { NetworkUser } from "../models/networkUsers.ts";
 import SocketAPI from "./socketAPI.ts";
@@ -29,7 +29,7 @@ export class NetworkFactory {
     private socket: SocketAPI;
     private me: NetworkUser;
     private target: NetworkUser;
-    private webrtc: WebRTCAPI | undefined = undefined;
+    // private webrtc: WebRTCAPI | undefined = undefined;
     private onApproval: () => void;
     private onRefusal: () => void;
     private onConnection: (gameNet: GameNetwork) => void;
@@ -115,13 +115,13 @@ export class NetworkFactory {
     private startWebRTCAsHost() {
         this.onStepChange("sending-webrtc-descriptor");
 
-        this.webrtc = new WebRTCAPI(
-            this.isHost,
-            (candidate: RTCIceCandidate) => {this.shareIceCandidate(candidate)},
-            (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
-        );
+        // this.webrtc = new WebRTCAPI(
+        //     this.isHost,
+        //     (candidate: RTCIceCandidate) => {this.shareIceCandidate(candidate)},
+        //     (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
+        // );
         this.timeout = setTimeout(() => {
-            if (this.webrtc) this.webrtc.close()
+            // if (this.webrtc) this.webrtc.close()
             this.onTimeout();
         }, 8000);
 
@@ -135,13 +135,13 @@ export class NetworkFactory {
             }).catch(this.onError);
         });
 
-        this.webrtc.createOffer().then((offer) => {
-            this.socket.send("webrtc-send-description", {
-                from: this.me,
-                target: this.target,
-                description: offer,
-            });
-        }).catch(this.onError);
+        // this.webrtc.createOffer().then((offer) => {
+        //     this.socket.send("webrtc-send-description", {
+        //         from: this.me,
+        //         target: this.target,
+        //         description: offer,
+        //     });
+        // }).catch(this.onError);
     }
 
     private prepareWebRTCAsClient() {
@@ -149,32 +149,32 @@ export class NetworkFactory {
 
         this.socket.addListener("webrtc-send-description", (data: any) => {
             const { from, target, description } = data;
-            if (!this.webrtc) {
-                this.webrtc = new WebRTCAPI(
-                    this.isHost,
-                    (candidate: RTCIceCandidate) => {this.shareIceCandidate(candidate)},
-                    (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
-                );
-            }
+            // if (!this.webrtc) {
+            //     this.webrtc = new WebRTCAPI(
+            //         this.isHost,
+            //         (candidate: RTCIceCandidate) => {this.shareIceCandidate(candidate)},
+            //         (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
+            //     );
+            // }
             this.timeout = setTimeout(() => {
-                if (this.webrtc) this.webrtc.close()
+                // if (this.webrtc) this.webrtc.close()
                 this.onTimeout();
             }, 8000);
 
-            this.webrtc.saveRemoteDescription(description).then(() => {
-                // @ts-ignore
-                this.webrtc.createAnswer().then((answer) => {
-                    this.onStepChange("exchanging-webrtc-ice");
-                    this.socket.send("webrtc-send-description", {
-                        from: this.me,
-                        target: from,
+            // this.webrtc.saveRemoteDescription(description).then(() => {
+            //     // @ts-ignore
+            //     this.webrtc.createAnswer().then((answer) => {
+            //         this.onStepChange("exchanging-webrtc-ice");
+            //         this.socket.send("webrtc-send-description", {
+            //             from: this.me,
+            //             target: from,
 
-                        description: answer,
-                    });
-                    // @ts-ignore
-                    this.webrtc.flushIceCandidates();
-                }).catch(this.onError);
-            }).catch(this.onError);
+            //             description: answer,
+            //         });
+            //         // @ts-ignore
+            //         this.webrtc.flushIceCandidates();
+            //     }).catch(this.onError);
+            // }).catch(this.onError);
         });
     }
 
@@ -189,20 +189,20 @@ export class NetworkFactory {
     private listenForIceCandidates() {
         this.socket.addListener("webrtc-send-ice-candidate", (data: any) => {
 			console.log("Received ICE candidate from socket:", data);
-            if (!this.webrtc) {
-                this.webrtc = new WebRTCAPI(
-                    this.isHost,
-                    (candidate: RTCIceCandidate) => {this.shareIceCandidate(candidate)},
-                    (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
-                );
-            }
-            this.webrtc?.addIceCandidate(new RTCIceCandidate(data.candidate))
-            .then(() => {
-                this.logger("Added ICE candidate", data.candidate);
-            })
-            .catch((error) => {
-                this.logger("Error adding ICE candidate:", error);
-            });
+            // if (!this.webrtc) {
+            //     this.webrtc = new WebRTCAPI(
+            //         this.isHost,
+            //         (candidate: RTCIceCandidate) => {this.shareIceCandidate(candidate)},
+            //         (channel: RTCDataChannel) => {this.registerDataChannel(channel)}
+            //     );
+            // }
+            // this.webrtc?.addIceCandidate(new RTCIceCandidate(data.candidate))
+            // .then(() => {
+            //     this.logger("Added ICE candidate", data.candidate);
+            // })
+            // .catch((error) => {
+            //     this.logger("Error adding ICE candidate:", error);
+            // });
 		});
     }
 
