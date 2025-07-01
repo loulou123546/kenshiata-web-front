@@ -1,11 +1,14 @@
 <script lang="ts">
-    import { listCharacters, Character } from "../../models/characters.ts";
-    import SmallPlayerCard from "../SmallPlayerCard.svelte";
-    import EditForm from "./EditForm.svelte";
+import { type Character, listCharacters } from "../../models/characters.ts";
+import SmallPlayerCard from "../SmallPlayerCard.svelte";
+import EditForm from "./EditForm.svelte";
 
-    let loading: Promise<Character[]> = $state(listCharacters());
-    let editing: Character | {} | undefined = $state(undefined);
-    let selected: Character | undefined = $state(undefined);
+// biome-ignore lint: username is modified on bind:value
+let loading: Promise<Character[]> = $state(listCharacters());
+// biome-ignore lint: username is modified on bind:value
+let editing: Character | {} | undefined = $state(undefined);
+// biome-ignore lint: username is modified on bind:value
+let selected: Character | undefined = $state(undefined);
 </script>
 
 <div

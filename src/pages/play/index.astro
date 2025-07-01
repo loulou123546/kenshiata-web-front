@@ -1,16 +1,16 @@
 ---
+import fs from "fs/promises";
 import Layout from "../../layouts/Layout.astro";
 import Main from "./_main.svelte";
-import fs from "fs/promises";
 
 const stories = await fs
-    .readdir("./public", { withFileTypes: true })
-    .then((entries) =>
-        entries
-            .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-            .map((entry) => entry.name),
-    )
-    .catch(() => []);
+	.readdir("./public", { withFileTypes: true })
+	.then((entries) =>
+		entries
+			.filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+			.map((entry) => entry.name),
+	)
+	.catch(() => []);
 ---
 
 <Layout>

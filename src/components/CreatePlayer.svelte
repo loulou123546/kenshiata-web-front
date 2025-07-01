@@ -1,18 +1,23 @@
 <script lang="ts">
-    import { user, Avatars, getAvatarSource } from "../models/user.ts";
-    const { whenready } = $props();
+import { Avatars, getAvatarSource, user } from "../models/user.ts";
+const { whenready } = $props();
 
-    let username: string = $state(user.get().username);
-    let avatar: string = $state(user.get().avatar);
+// biome-ignore lint: username is modified on bind:value
+let username: string = $state(user.get().username);
+let avatar: string = $state(user.get().avatar);
 
-    function save() {
-        user.set({
-            ...user.get(),
-            username: username,
-            avatar: avatar,
-        });
-        whenready();
-    }
+function save() {
+	user.set({
+		...user.get(),
+		username: username,
+		avatar: avatar,
+	});
+	whenready();
+}
+
+function setAvatarImage(avatarImg: string) {
+	avatar = avatarImg;
+}
 </script>
 
 <div class="p-4 m-8 rounded-xl bg-gray-200 shadow-lg text-center">
@@ -20,7 +25,7 @@
 
     <div class="flex flex-wrap flex-row items-center justify-center py-2">
         {#each Avatars as avatarImg}
-            <button onclick={() => (avatar = avatarImg)}>
+            <button onclick={() => setAvatarImage(avatarImg)}>
                 <img
                     class={[
                         "w-24 h-24 rounded-full m-2 cursor-pointer",

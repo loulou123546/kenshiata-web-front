@@ -1,33 +1,34 @@
 <script lang="ts">
-    import {
-        Character,
-        createCharacter,
-        editCharacter,
-    } from "../../models/characters.ts";
-    import { Avatars, getAvatarSource } from "../../models/user.ts";
-    const { onclose, source } = $props();
+import { createCharacter, editCharacter } from "../../models/characters.ts";
+import { Avatars, getAvatarSource } from "../../models/user.ts";
+const { onclose, source } = $props();
 
-    let username: string = $state(source?.name ?? "");
-    let avatar: string = $state(
-        source?.avatar ?? Avatars[Math.floor(Math.random() * Avatars.length)],
-    );
+// biome-ignore lint: username is modified on bind:value
+let username: string = $state(source?.name ?? "");
+let avatar: string = $state(
+	source?.avatar ?? Avatars[Math.floor(Math.random() * Avatars.length)],
+);
 
-    async function save() {
-        if (source?.id && source?.userId) {
-            await editCharacter({
-                id: source.id,
-                userId: source.userId,
-                name: username,
-                avatar: avatar,
-            });
-        } else {
-            await createCharacter({
-                name: username,
-                avatar: avatar,
-            });
-        }
-        onclose();
-    }
+async function save() {
+	if (source?.id && source?.userId) {
+		await editCharacter({
+			id: source.id,
+			userId: source.userId,
+			name: username,
+			avatar: avatar,
+		});
+	} else {
+		await createCharacter({
+			name: username,
+			avatar: avatar,
+		});
+	}
+	onclose();
+}
+
+function setAvatarImage(avatarImg: string) {
+	avatar = avatarImg;
+}
 </script>
 
 <div
@@ -50,7 +51,7 @@
 
     <div class="flex flex-wrap flex-row items-center justify-center py-2">
         {#each Avatars as avatarImg}
-            <button onclick={() => (avatar = avatarImg)}>
+            <button onclick={() => setAvatarImage(avatarImg)}>
                 <img
                     class={[
                         "w-24 h-24 rounded-full m-2 cursor-pointer",

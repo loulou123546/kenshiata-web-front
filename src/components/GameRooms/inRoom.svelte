@@ -1,27 +1,27 @@
 <script lang="ts">
-    import SocketAPI from "../../services/socketAPI";
-    import RequestJoining from "./requestJoining.svelte";
-    import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
-    import { type User } from "../../services/auth";
-    import { UserIdentity } from "../../models/user";
+import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
+import type { UserIdentity } from "../../models/user";
+import type { User } from "../../services/auth";
+import type SocketAPI from "../../services/socketAPI";
+import RequestJoining from "./requestJoining.svelte";
 
-    const { socket, room, me } = $props<{
-        socket: SocketAPI;
-        room: GameRoom;
-        me: User;
-    }>();
-    let names: Record<string, UserIdentity> = $state({});
+const { socket, room, me } = $props<{
+	socket: SocketAPI;
+	room: GameRoom;
+	me: User;
+}>();
+let names: Record<string, UserIdentity> = $state({});
 
-    getGameRoomNames(room.hostId).then((values) => {
-        names = {
-            ...names,
-            ...values,
-        };
-    });
+getGameRoomNames(room.hostId).then((values) => {
+	names = {
+		...names,
+		...values,
+	};
+});
 
-    function leaveRoom() {
-        socket.send("leave-room", { hostId: room.hostId });
-    }
+function leaveRoom() {
+	socket.send("leave-room", { hostId: room.hostId });
+}
 </script>
 
 <h2 class="text-2xl text-center py-4">

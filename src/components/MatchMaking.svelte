@@ -1,45 +1,43 @@
 <script lang="ts">
-    import SocketAPI from "../services/socketAPI";
-    import Create from "./GameRooms/create.svelte";
-    import List from "./GameRooms/list.svelte";
-    import InRoom from "./GameRooms/inRoom.svelte";
-    import { type GameRoom } from "../models/gameRoom";
-    import { getUserData, type User } from "../services/auth";
+import type { GameRoom } from "../models/gameRoom";
+import { type User, getUserData } from "../services/auth";
+import SocketAPI from "../services/socketAPI";
+import Create from "./GameRooms/create.svelte";
+import InRoom from "./GameRooms/inRoom.svelte";
+import List from "./GameRooms/list.svelte";
 
-    const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
-    let rooms: GameRoom[] = $state([]);
-    let me: User | undefined = $state(undefined);
-    getUserData().then((user) => {
-        me = user;
-    });
-    let currentRoom: GameRoom | undefined = $derived(
-        // @ts-ignore id can and will exist
-        (me?.id && rooms.find((room) => room.players.includes(me?.id))) ||
-            undefined,
-    );
+const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
+let rooms: GameRoom[] = $state([]);
+let me: User | undefined = $state(undefined);
+getUserData().then((user) => {
+	me = user;
+});
+const currentRoom: GameRoom | undefined = $derived(
+	// @ts-ignore id can and will exist
+	(me?.id && rooms.find((room) => room.players.includes(me?.id))) || undefined,
+);
 
-    socketP.then((socket) => {
-        socket.addListener(
-            "update-game-rooms",
-            ({
-                updateRooms,
-                removedRooms,
-            }: {
-                updateRooms: GameRoom[];
-                removedRooms: string[];
-            }) => {
-                rooms = [
-                    ...rooms.filter(
-                        (room) =>
-                            !updateRooms.some(
-                                (r) => r.hostId === room.hostId,
-                            ) && !removedRooms.includes(room.hostId),
-                    ),
-                    ...updateRooms,
-                ];
-            },
-        );
-    });
+socketP.then((socket) => {
+	socket.addListener(
+		"update-game-rooms",
+		({
+			updateRooms,
+			removedRooms,
+		}: {
+			updateRooms: GameRoom[];
+			removedRooms: string[];
+		}) => {
+			rooms = [
+				...rooms.filter(
+					(room) =>
+						!updateRooms.some((r) => r.hostId === room.hostId) &&
+						!removedRooms.includes(room.hostId),
+				),
+				...updateRooms,
+			];
+		},
+	);
+});
 </script>
 
 <div class="w-full p-4">

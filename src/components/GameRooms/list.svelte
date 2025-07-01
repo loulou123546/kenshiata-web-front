@@ -1,52 +1,57 @@
 <script lang="ts">
-    import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
-    import type { UserIdentity } from "../../models/user";
-    import type SocketAPI from "../../services/socketAPI";
+import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
+import type { UserIdentity } from "../../models/user";
+import type SocketAPI from "../../services/socketAPI";
 
-    const { socket, rooms } = $props<{
-        socket: SocketAPI;
-        rooms: GameRoom[];
-    }>();
+const { socket, rooms } = $props<{
+	socket: SocketAPI;
+	rooms: GameRoom[];
+}>();
 
-    let selectedRoom: GameRoom | undefined = $state(undefined);
-    let names: Record<string, UserIdentity> = $state({});
-    let loading: Promise<any> = $state(Promise.resolve());
-    let joiningRooms = $state<
-        Record<string, "pending" | "accepted" | "refused">
-    >({});
+let selectedRoom: GameRoom | undefined = $state(undefined);
+let names: Record<string, UserIdentity> = $state({});
+let loading: Promise<any> = $state(Promise.resolve());
+let joiningRooms = $state<Record<string, "pending" | "accepted" | "refused">>(
+	{},
+);
 
-    socket.send("list-game-rooms", {});
+socket.send("list-game-rooms", {});
 
-    async function selectRoom(room: GameRoom) {
-        selectedRoom = room;
-        const infos = await getGameRoomNames(room.hostId);
-        names = {
-            ...names,
-            ...infos,
-        };
-    }
+async function selectRoom(room: GameRoom) {
+	selectedRoom = room;
+	const infos = await getGameRoomNames(room.hostId);
+	names = {
+		...names,
+		...infos,
+	};
+}
 
-    socket.addListener(
-        "respond-join-room",
-        ({ hostId, accept }: { hostId: string; accept: boolean }) => {
-            if (!joiningRooms[hostId]) return;
-            joiningRooms = {
-                ...joiningRooms,
-                [hostId]: accept ? "accepted" : "refused",
-            };
-        },
-    );
+socket.addListener(
+	"respond-join-room",
+	({ hostId, accept }: { hostId: string; accept: boolean }) => {
+		if (!joiningRooms[hostId]) return;
+		joiningRooms = {
+			...joiningRooms,
+			[hostId]: accept ? "accepted" : "refused",
+		};
+	},
+);
 
-    function joinRoom(hostId: string) {
-        if (joiningRooms[hostId]) return;
+function joinRoom(hostId: string) {
+	if (joiningRooms[hostId]) return;
 
-        joiningRooms = {
-            ...joiningRooms,
-            [hostId]: "pending",
-        };
+	joiningRooms = {
+		...joiningRooms,
+		[hostId]: "pending",
+	};
 
-        socket.send("request-join-room", { hostId });
-    }
+	socket.send("request-join-room", { hostId });
+}
+
+function setLoading(promise: Promise<any>) {
+	loading = promise;
+	return promise;
+}
 </script>
 
 <ul class="p-2 flex flex-col gap-1">
@@ -54,7 +59,7 @@
         <li class="">
             <button
                 class="px-2 py-1 rounded-lg bg-gray-200 hover:bg-gray-300 text-black w-full flex flex-col"
-                onclick={() => (loading = selectRoom(room))}
+                onclick={() => setLoading(selectRoom(room))}
             >
                 <div class="flex flex-row items-center justify-between w-full">
                     <h3 class="text-xl font-semibold">{room.name}</h3>
