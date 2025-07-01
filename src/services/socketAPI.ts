@@ -1,6 +1,6 @@
+import { GameNetwork } from "../models/GameNetwork";
 import type { User } from "../models/user";
 import { getUserData } from "./auth";
-import { GameNetwork } from "../models/GameNetwork";
 
 type Logger = (...data: any[]) => void;
 
@@ -9,11 +9,14 @@ export default class SocketAPI {
 	private listeners: { [key: string]: ((data: any) => void)[] } = {};
 	private logger: Logger = console.log;
 
-	constructor({logger, token}: { logger?: Logger; token: string }) {
+	constructor({ logger, token }: { logger?: Logger; token: string }) {
 		if (logger) this.logger = logger;
-		if (!import.meta.env.PUBLIC_WEBSOKET) throw new Error("PUBLIC_WEBSOKET variable is not defined");
+		if (!import.meta.env.PUBLIC_WEBSOKET)
+			throw new Error("PUBLIC_WEBSOKET variable is not defined");
 
-		this.socket = new WebSocket(`${import.meta.env.PUBLIC_WEBSOKET}?token=${token}`);
+		this.socket = new WebSocket(
+			`${import.meta.env.PUBLIC_WEBSOKET}?token=${token}`,
+		);
 		// La connexion est ouverte
 		this.socket.addEventListener("open", (event) => {
 			this.logger("WebSocket: connection opened");
@@ -70,13 +73,16 @@ export default class SocketAPI {
 	public static async create(logger?: Logger): Promise<SocketAPI> {
 		const user = await getUserData();
 		if (!user || !user?.token) throw new Error("User is not authenticated");
-		const res = await fetch(`${import.meta.env.PUBLIC_API_DOMAIN}/open-socket`, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${user.token}`,
+		const res = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/open-socket`,
+			{
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${user.token}`,
+				},
+				mode: "cors",
 			},
-			mode: "cors",
-		});
+		);
 		const data = await res.json();
 		if (!res.ok || !data?.data?.token) {
 			throw new Error("Server declined the socket connection");

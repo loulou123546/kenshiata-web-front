@@ -1,28 +1,26 @@
 <script lang="ts">
-    import SocketAPI from "../../services/socketAPI";
+import type SocketAPI from "../../services/socketAPI";
 
-    const { socket } = $props<{
-        socket: SocketAPI;
-    }>();
+const { socket } = $props<{
+	socket: SocketAPI;
+}>();
 
-    let roomName: string = $state("");
-    let roomType: "private" | "public" = $state("private");
+let roomName: string = $state("");
+let roomType: "private" | "public" = $state("private");
 
-    function createGame() {
-        if (roomName.trim().length < 3 || roomName.trim().length > 256) {
-            alert(
-                "Le nom de la partie doit contenir entre 3 et 256 caractères.",
-            );
-            return;
-        }
+function createGame() {
+	if (roomName.trim().length < 3 || roomName.trim().length > 256) {
+		alert("Le nom de la partie doit contenir entre 3 et 256 caractères.");
+		return;
+	}
 
-        socket.send("create-game-room", {
-            name: roomName.trim(),
-            is_public: roomType === "public",
-        });
-        roomName = "";
-        roomType = "private";
-    }
+	socket.send("create-game-room", {
+		name: roomName.trim(),
+		is_public: roomType === "public",
+	});
+	roomName = "";
+	roomType = "private";
+}
 </script>
 
 <div class="bg-gray-500 p-6 rounded-lg shadow-md">

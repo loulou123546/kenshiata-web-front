@@ -60,7 +60,7 @@ messages:
     title: Triggered by a user to ask to join a game room
     description: User can send their this message to ask to join a room. Owner of room will receive this message for approval.
     properties:
-      roomId:
+      hostId:
         type: string
         description: The id of the room to join
       userId:
@@ -73,7 +73,7 @@ messages:
       room
     description: Message is sent by room owner and received by user who asked to join. In case of positive answer, user will be added to the room immedialty
     properties:
-      roomId:
+      hostId:
         type: string
         description: The id of the room to join
       userId:
@@ -88,7 +88,7 @@ messages:
     title: Ask a player if they want to join a room
     description: Message is sent by room player, and is forwarded by server to player if online.
     properties:
-      roomId:
+      hostId:
         type: string
         description: The id of the room to invite user to
       userId:
@@ -100,7 +100,7 @@ messages:
     title: Player send to server that they accept or decline to join a room
     description: Message is sent by user, and is forwarded by server to room owner. In case he accept, it's added directly into room.
     properties:
-      roomId:
+      hostId:
         type: string
         description: The id of the room to join
       userId:
@@ -109,3 +109,12 @@ messages:
       accept:
         type: boolean
         description: If true, the user accepted to join the room, else they declined the invite
+
+  - action: leave-room
+    mode: send
+    title: Player send to server that they want to leave a room
+    description: Server will delete the room if host leave it, and will send updated game data to everyone.
+    properties:
+      hostId:
+        type: string
+        description: The id of the room to leave

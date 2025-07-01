@@ -1,17 +1,17 @@
 <script lang="ts">
-    import { userManager, getUserData, type User } from "../services/auth.ts";
+import { type User, getUserData, userManager } from "../services/auth.ts";
 
-    const { whenLoginOK } = $props();
+const { whenLoginOK } = $props();
 
-    async function login() {
-        await userManager.signinRedirect();
-    }
+async function login() {
+	await userManager.signinRedirect();
+}
 
-    const loading = getUserData();
-    loading.then((user) => {
-        console.log("User data loaded:", user);
-        whenLoginOK();
-    });
+const loading = getUserData();
+loading.then((user) => {
+	console.log("User data loaded:", user);
+	whenLoginOK();
+});
 </script>
 
 <main class="w-full h-full flex items-center justify-center p-16">

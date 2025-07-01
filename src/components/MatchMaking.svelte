@@ -1,9 +1,45 @@
 <script lang="ts">
     import SocketAPI from "../services/socketAPI";
-    import List from "./GameRooms/list.svelte";
     import Create from "./GameRooms/create.svelte";
+    import List from "./GameRooms/list.svelte";
+    import InRoom from "./GameRooms/inRoom.svelte";
+    import { type GameRoom } from "../models/gameRoom";
+    import { getUserData, type User } from "../services/auth";
 
     const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
+    let rooms: GameRoom[] = $state([]);
+    let me: User | undefined = $state(undefined);
+    getUserData().then((user) => {
+        me = user;
+    });
+    let currentRoom: GameRoom | undefined = $derived(
+        // @ts-ignore id can and will exist
+        (me?.id && rooms.find((room) => room.players.includes(me?.id))) ||
+            undefined,
+    );
+
+    socketP.then((socket) => {
+        socket.addListener(
+            "update-game-rooms",
+            ({
+                updateRooms,
+                removedRooms,
+            }: {
+                updateRooms: GameRoom[];
+                removedRooms: string[];
+            }) => {
+                rooms = [
+                    ...rooms.filter(
+                        (room) =>
+                            !updateRooms.some(
+                                (r) => r.hostId === room.hostId,
+                            ) && !removedRooms.includes(room.hostId),
+                    ),
+                    ...updateRooms,
+                ];
+            },
+        );
+    });
 </script>
 
 <div class="w-full p-4">
@@ -31,17 +67,23 @@
 
             <h2 class="text-2xl text-center py-4">Connexion au serveur...</h2>
         {:then socket}
-            <h2 class="text-2xl text-center py-4">Commencer à jouer !</h2>
+            {#if currentRoom && me}
+                <InRoom {socket} room={currentRoom} {me} />
+            {:else}
+                <h2 class="text-2xl text-center py-4">Commencer à jouer !</h2>
 
-            <div class="w-full flex flex-row">
-                <div class="w-3/4">
-                    <h3 class="text-xl text-center">Rejoindre une partie</h3>
-                    <List {socket} />
+                <div class="w-full flex flex-row">
+                    <div class="w-3/4">
+                        <h3 class="text-xl text-center">
+                            Rejoindre une partie
+                        </h3>
+                        <List {socket} {rooms} />
+                    </div>
+                    <div class="w-1/4">
+                        <Create {socket} />
+                    </div>
                 </div>
-                <div class="w-1/4">
-                    <Create {socket} />
-                </div>
-            </div>
+            {/if}
         {:catch error}
             <h2 class="text-2xl text-center py-4 text-red-500">
                 Erreur de connexion : {error.message}
