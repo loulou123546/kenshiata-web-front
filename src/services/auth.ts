@@ -35,7 +35,7 @@ class NanoStoreAsStoreManager {
 const cognitoAuthConfig = {
 	authority: "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Fzpf4i9XY",
 	client_id: "203t0a306t5vkid4kdeto2hs2i",
-	redirect_uri: "http://localhost:4321/user/login",
+	redirect_uri: `${import.meta.env.PUBLIC_FRONT_DOMAIN}/user/login`,
 	response_type: "code",
 	scope: "email openid phone profile",
 	// no revoke of "access token" (https://github.com/authts/oidc-client-ts/issues/262)
