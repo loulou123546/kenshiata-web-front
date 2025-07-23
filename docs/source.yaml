@@ -118,3 +118,56 @@ messages:
       hostId:
         type: string
         description: The id of the room to leave
+
+  - action: start-game
+    mode: both
+    title: Host of the game start it with this command (provide only hostId), then it's broadcasted (all fields) to players in room
+    description: This message if followed by a broadcast of `update-game-rooms` which delete the room
+    properties:
+      hostId:
+        type: string
+        description: The id of the room to start. Only parameter sent by host to server
+      id:
+        type: string
+        description: ID of the newly created game session
+      name:
+        type: string
+        description: Name of the newly created game session, based on gameRoom name
+      data:
+        type: object
+        description: The data of the game, which may contain anything during game
+        properties: {}
+      players:
+        type: array
+        description: List of players informations in the room, will not change in time
+        items:
+          type: object
+          properties:
+            socketId:
+              type: string
+              description: The network socket ID of the player
+            userId:
+              type: string
+              description: The unique user ID of the player
+            username:
+              type: string
+              description: The name of the player
+            data:
+              type: object
+              description: The data of the player, which may contain anything during game
+              properties: {}
+
+  - action: vote-story
+    mode: both
+    title: Used by player to broadcast their vote for a story in a game session.
+    description: Player send to server that they vote for a story, then it's broadcasted (all fields) to players in room
+    properties:
+      gameId:
+        type: string
+        description: The id of the game room.
+      userId:
+        type: string
+        description: The id of the user who voted
+      storyId:
+        type: string
+        description: The id of the story voted

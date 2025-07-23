@@ -1,20 +1,20 @@
 <script lang="ts">
-import { type User, getAvatarSource } from "../models/user.ts";
-let { user, onclick, onedit, customClass } = $props<{
-	user: User;
-	onclick: () => void;
-	onedit?: () => void;
-	customClass?: string;
-}>();
+    import { type User, getAvatarSource } from "../models/user.ts";
+    let { user, onclick, onedit, customClass } = $props<{
+        user: User;
+        onclick: () => void;
+        onedit?: () => void;
+        customClass?: string;
+    }>();
 
-if (!customClass) {
-	customClass = "bg-gray-200 text-black hover:bg-gray-400";
-}
+    if (!customClass) {
+        customClass = "bg-gray-200 text-black hover:bg-gray-400";
+    }
 </script>
 
 <button
     class={[
-        "py-2 px-6 m-2 lg:m-8 rounded-xl shadow-lg flex flex-row items-center justify-center w-fit",
+        "py-2 px-6 rounded-xl shadow-lg flex flex-row items-center justify-center w-fit",
         customClass,
     ]}
     {onclick}

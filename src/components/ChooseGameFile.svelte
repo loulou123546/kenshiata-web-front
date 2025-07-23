@@ -1,26 +1,26 @@
 <script lang="ts">
-    import GameChoice from "./GameChoice.svelte";
-    import { GameNetwork } from "../models/GameNetwork.ts";
+import type { GameNetwork } from "../models/GameNetwork.ts";
+import GameChoice from "./GameChoice.svelte";
 
-    const { gameNetwork, onGameFileSelected, stories } = $props<{
-        gameNetwork: GameNetwork;
-        onGameFileSelected: (file: string) => void;
-        stories: string[];
-    }>();
+const { gameNetwork, onGameFileSelected, stories } = $props<{
+	gameNetwork: GameNetwork;
+	onGameFileSelected: (file: string) => void;
+	stories: string[];
+}>();
 
-    function onSelected(choiceIndex: number) {
-        if (!gameNetwork.isHost) return;
-        gameNetwork.send("load-gameplay", {
-            gameplayFile: stories[choiceIndex],
-        });
-        onGameFileSelected(stories[choiceIndex]);
-    }
+function onSelected(choiceIndex: number) {
+	if (!gameNetwork.isHost) return;
+	gameNetwork.send("load-gameplay", {
+		gameplayFile: stories[choiceIndex],
+	});
+	onGameFileSelected(stories[choiceIndex]);
+}
 
-    gameNetwork.addListener("load-gameplay", (data: any) => {
-        if (data.gameplayFile) {
-            onGameFileSelected(data.gameplayFile);
-        }
-    });
+gameNetwork.addListener("load-gameplay", (data: any) => {
+	if (data.gameplayFile) {
+		onGameFileSelected(data.gameplayFile);
+	}
+});
 </script>
 
 <GameChoice

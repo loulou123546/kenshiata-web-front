@@ -1,27 +1,36 @@
 <script lang="ts">
-import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
-import type { UserIdentity } from "../../models/user";
-import type { User } from "../../services/auth";
-import type SocketAPI from "../../services/socketAPI";
-import RequestJoining from "./requestJoining.svelte";
+    import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
+    import type { UserIdentity } from "../../models/user";
+    import type { User } from "../../services/auth";
+    import type SocketAPI from "../../services/socketAPI";
+    import RequestJoining from "./requestJoining.svelte";
 
-const { socket, room, me } = $props<{
-	socket: SocketAPI;
-	room: GameRoom;
-	me: User;
-}>();
-let names: Record<string, UserIdentity> = $state({});
+    const { socket, room, me } = $props<{
+        socket: SocketAPI;
+        room: GameRoom;
+        me: User;
+    }>();
+    let names: Record<string, UserIdentity> = $state({});
+    let btnLocked = $state(false);
 
-getGameRoomNames(room.hostId).then((values) => {
-	names = {
-		...names,
-		...values,
-	};
-});
+    getGameRoomNames(room.hostId).then((values) => {
+        names = {
+            ...names,
+            ...values,
+        };
+    });
 
-function leaveRoom() {
-	socket.send("leave-room", { hostId: room.hostId });
-}
+    function leaveRoom() {
+        socket.send("leave-room", { hostId: room.hostId });
+    }
+
+    function startGame() {
+        btnLocked = true;
+        socket.send("start-game", { hostId: room.hostId });
+        setTimeout(() => {
+            btnLocked = false;
+        }, 5000);
+    }
 </script>
 
 <h2 class="text-2xl text-center py-4">
@@ -42,11 +51,13 @@ function leaveRoom() {
     {#if room.hostId === me?.id}
         <button
             class="bg-red-700 text-white hover:bg-red-800 py-2 px-4 rounded-lg"
+            disabled={btnLocked}
             onclick={leaveRoom}>Fermer la session de jeu</button
         >
         <button
             class="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-lg"
-            >Lancer la partie</button
+            disabled={btnLocked}
+            onclick={startGame}>Lancer la partie</button
         >
     {:else}
         <button

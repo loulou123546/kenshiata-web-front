@@ -1,76 +1,71 @@
 <script lang="ts">
-    import { GameNetwork } from "../models/GameNetwork.ts";
-    import {
-        user,
-        type User,
-        getAvatarSource,
-        players,
-        getPlayer,
-    } from "../models/user.ts";
-    export type VotesMode =
-        | "host-win"
-        | "majority-random"
-        | "majority-host"
-        | "all-must-approve"
-        | "random";
+import type { GameNetwork } from "../models/GameNetwork.ts";
+import {
+	type User,
+	getAvatarSource,
+	getPlayer,
+	players,
+	user,
+} from "../models/user.ts";
+export type VotesMode =
+	| "host-win"
+	| "majority-random"
+	| "majority-host"
+	| "all-must-approve"
+	| "random";
 
-    const {
-        gameNetwork,
-        choices,
-        voteMode,
-        onValidated,
-        provideResetFunction,
-    } = $props<{
-        gameNetwork: GameNetwork;
-        choices: { title: string; index: number }[];
-        voteMode: VotesMode;
-        onValidated: (choiceIndex: number) => void;
-        provideResetFunction: (reset: () => void) => void;
-    }>();
+const { gameNetwork, choices, voteMode, onValidated, provideResetFunction } =
+	$props<{
+		gameNetwork: GameNetwork;
+		choices: { title: string; index: number }[];
+		voteMode: VotesMode;
+		onValidated: (choiceIndex: number) => void;
+		provideResetFunction: (reset: () => void) => void;
+	}>();
 
-    let votes: { [key: string]: number } = $state({});
+let votes: { [key: string]: number } = $state({});
 
-    provideResetFunction(() => {
-        votes = {};
-    });
+provideResetFunction(() => {
+	votes = {};
+});
 
-    function computeVotes() {
-        if (voteMode === "all-must-approve") {
-            let approvedIndex: number | undefined = undefined;
-            const didAllAggree = players.get().every((player: User) => {
-                const vote = votes?.[player.username];
-                if (vote === undefined) return false;
-                if (approvedIndex === undefined) {
-                    approvedIndex = vote;
-                    return true;
-                }
-                if (approvedIndex === vote) return true;
-                return false;
-            });
-            if (didAllAggree && approvedIndex !== undefined) {
-                onValidated(approvedIndex);
-            }
-        }
-    }
+function computeVotes() {
+	if (voteMode === "all-must-approve") {
+		let approvedIndex: number | undefined = undefined;
+		const didAllAggree = players.get().every((player: User) => {
+			const vote = votes?.[player.username];
+			if (vote === undefined) return false;
+			if (approvedIndex === undefined) {
+				approvedIndex = vote;
+				return true;
+			}
+			if (approvedIndex === vote) return true;
+			return false;
+		});
+		if (didAllAggree && approvedIndex !== undefined) {
+			onValidated(approvedIndex);
+		}
+	}
+}
 
-    function voteForChoice(choiceIndex: number) {
-        gameNetwork.send("vote-choice", {
-            index: choiceIndex,
-            player: user.get(),
-        });
-        votes[user.get().username] = choiceIndex;
-        if (voteMode === "host-win") {
-            onValidated(choiceIndex); // if we are not the host, it does nothing
-        } else {
-            computeVotes();
-        }
-    }
+function voteForChoice(choiceIndex: number) {
+	gameNetwork.send("vote-choice", {
+		index: choiceIndex,
+		player: user.get(),
+	});
+	votes[user.get().username] = choiceIndex;
+	if (voteMode === "host-win") {
+		onValidated(choiceIndex); // if we are not the host, it does nothing
+	} else {
+		computeVotes();
+	}
+}
 
-    gameNetwork.addListener("vote-choice", (data: any) => {
-        const { index, player } = data;
-        votes[player.username] = index;
-        computeVotes();
-    });
+gameNetwork.addListener("vote-choice", (data: any) => {
+	const { index, player } = data;
+	votes[player.username] = index;
+	computeVotes();
+});
 </script>
 
 <div class="flex flex-row flex-wrap">

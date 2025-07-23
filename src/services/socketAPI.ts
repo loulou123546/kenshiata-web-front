@@ -1,5 +1,3 @@
-import { GameNetwork } from "../models/GameNetwork";
-import type { User } from "../models/user";
 import { getUserData } from "./auth";
 
 type Logger = (...data: any[]) => void;

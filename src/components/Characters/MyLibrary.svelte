@@ -1,14 +1,14 @@
 <script lang="ts">
-import { type Character, listCharacters } from "../../models/characters.ts";
-import SmallPlayerCard from "../SmallPlayerCard.svelte";
-import EditForm from "./EditForm.svelte";
+    import { type Character, listCharacters } from "../../models/characters.ts";
+    import SmallPlayerCard from "../SmallPlayerCard.svelte";
+    import EditForm from "./EditForm.svelte";
 
-// biome-ignore lint: username is modified on bind:value
-let loading: Promise<Character[]> = $state(listCharacters());
-// biome-ignore lint: username is modified on bind:value
-let editing: Character | {} | undefined = $state(undefined);
-// biome-ignore lint: username is modified on bind:value
-let selected: Character | undefined = $state(undefined);
+    // biome-ignore lint: username is modified on bind:value
+    let loading: Promise<Character[]> = $state(listCharacters());
+    // biome-ignore lint: username is modified on bind:value
+    let editing: Character | {} | undefined = $state(undefined);
+    // biome-ignore lint: username is modified on bind:value
+    let selected: Character | undefined = $state(undefined);
 </script>
 
 <div
@@ -28,7 +28,7 @@ let selected: Character | undefined = $state(undefined);
         {#await loading}
             <div class="text-white text-lg">Chargement des personnages...</div>
         {:then characters}
-            <div class="flex flex-row items-center justify-center w-full">
+            <div class="flex flex-row items-center justify-center w-full gap-8">
                 {#each characters as character}
                     <SmallPlayerCard
                         customClass={selected?.id === character.id

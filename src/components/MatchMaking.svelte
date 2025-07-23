@@ -1,43 +1,66 @@
 <script lang="ts">
-import type { GameRoom } from "../models/gameRoom";
-import { type User, getUserData } from "../services/auth";
-import SocketAPI from "../services/socketAPI";
-import Create from "./GameRooms/create.svelte";
-import InRoom from "./GameRooms/inRoom.svelte";
-import List from "./GameRooms/list.svelte";
+    import type { GameRoom } from "../models/gameRoom";
+    import { GameSession } from "../models/GameSession";
+    import { type User, getUserData } from "../services/auth";
+    import SocketAPI from "../services/socketAPI";
+    import Create from "./GameRooms/create.svelte";
+    import InRoom from "./GameRooms/inRoom.svelte";
+    import List from "./GameRooms/list.svelte";
 
-const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
-let rooms: GameRoom[] = $state([]);
-let me: User | undefined = $state(undefined);
-getUserData().then((user) => {
-	me = user;
-});
-const currentRoom: GameRoom | undefined = $derived(
-	// @ts-ignore id can and will exist
-	(me?.id && rooms.find((room) => room.players.includes(me?.id))) || undefined,
-);
+    const { onJoinSession } = $props<{
+        onJoinSession: (session: GameSession) => void;
+    }>();
 
-socketP.then((socket) => {
-	socket.addListener(
-		"update-game-rooms",
-		({
-			updateRooms,
-			removedRooms,
-		}: {
-			updateRooms: GameRoom[];
-			removedRooms: string[];
-		}) => {
-			rooms = [
-				...rooms.filter(
-					(room) =>
-						!updateRooms.some((r) => r.hostId === room.hostId) &&
-						!removedRooms.includes(room.hostId),
-				),
-				...updateRooms,
-			];
-		},
-	);
-});
+    const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
+    let rooms: GameRoom[] = $state([]);
+    let me: User | undefined = $state(undefined);
+    getUserData().then((user) => {
+        me = user;
+    });
+    const currentRoom: GameRoom | undefined = $derived(
+        // @ts-ignore id can and will exist
+        (me?.id && rooms.find((room) => room.players.includes(me?.id))) ||
+            undefined,
+    );
+
+    socketP.then((socket) => {
+        socket.addListener(
+            "update-game-rooms",
+            ({
+                updateRooms,
+                removedRooms,
+            }: {
+                updateRooms: GameRoom[];
+                removedRooms: string[];
+            }) => {
+                rooms = [
+                    ...rooms.filter(
+                        (room) =>
+                            !updateRooms.some(
+                                (r) => r.hostId === room.hostId,
+                            ) && !removedRooms.includes(room.hostId),
+                    ),
+                    ...updateRooms,
+                ];
+            },
+        );
+
+        socket.addListener("start-game", (sessionInfo: any) => {
+            if (sessionInfo.hostId === currentRoom?.hostId) {
+                const session = new GameSession(socket, sessionInfo);
+                onJoinSession(session);
+            } else if (currentRoom === undefined) {
+                if (
+                    confirm(
+                        `Voulez-vous rejoindre maintenant la session de jeu ${sessionInfo.name} ?`,
+                    )
+                ) {
+                    const session = new GameSession(socket, sessionInfo);
+                    onJoinSession(session);
+                }
+            }
+        });
+    });
 </script>
 
 <div class="w-full p-4">
