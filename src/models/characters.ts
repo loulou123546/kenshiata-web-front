@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { getUserData } from "../services/auth";
+import { atom } from 'nanostores';
+
 
 export const Character = z.object({
 	userId: z.string(),
@@ -8,6 +10,8 @@ export const Character = z.object({
 	avatar: z.string(),
 });
 export type Character = z.infer<typeof Character>;
+
+export const characters = atom<Character[]>([]);
 
 export const NewCharacter = Character.omit({ userId: true, id: true });
 export type NewCharacter = z.infer<typeof NewCharacter>;
@@ -32,7 +36,7 @@ export async function listCharacters(): Promise<Character[]> {
 		throw new Error("Failed to fetch characters");
 	}
 	const data = await response.json();
-	return data?.data
+	const chars = data?.data
 		?.map((character: any) => {
 			try {
 				return Character.parse(character);
@@ -41,6 +45,8 @@ export async function listCharacters(): Promise<Character[]> {
 			}
 		})
 		.filter((el: Character | undefined) => el !== undefined);
+	characters.set(chars);
+	return chars;
 }
 
 export async function createCharacter(
@@ -63,7 +69,10 @@ export async function createCharacter(
 		throw new Error("Failed to create character");
 	}
 	const data = await response.json();
-	return Character.parse(data.data);
+	const char = Character.parse(data.data);
+	
+	characters.set([...characters.get(), char]);
+	return char;
 }
 
 export async function editCharacter(character: Character): Promise<Character> {
@@ -84,5 +93,8 @@ export async function editCharacter(character: Character): Promise<Character> {
 		throw new Error("Failed to edit character");
 	}
 	const data = await response.json();
-	return Character.parse(data.data);
+	const char = Character.parse(data.data);
+	
+	characters.set(characters.get().map(el => el.id === char.id ? char : el));
+	return char;
 }

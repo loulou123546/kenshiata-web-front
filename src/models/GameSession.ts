@@ -21,14 +21,16 @@ export class GameSession {
     socket: SocketAPI;
     sessionId: string;
     players: GamePlayerModel[] = [];
+    myUserId: string;
     name: string = "";
     data: Record<string, any> = {};
 
-    constructor (socket: SocketAPI, data: any) {
+    constructor (socket: SocketAPI, data: any, myUserId: string) {
         const info = GameSessionModel.parse(data);
         this.socket = socket;
         this.sessionId = info.id;
         this.players = info.players;
+        this.myUserId = myUserId;
         this.name = info.name;
         this.data = info.data || {};
     }
@@ -39,6 +41,10 @@ export class GameSession {
 
     public getPlayer(id: string): GamePlayerModel | undefined {
         return this.players.find((pl) => pl.userId === id || pl.socketId === id);
+    }
+
+    public getMyPlayer(): GamePlayerModel | undefined {
+        return this.getPlayer(this.myUserId);
     }
 
     public setPlayer(player: GamePlayerModel) {

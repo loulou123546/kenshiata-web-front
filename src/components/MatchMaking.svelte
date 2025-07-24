@@ -46,8 +46,9 @@
         );
 
         socket.addListener("start-game", (sessionInfo: any) => {
+            if (!me) return;
             if (sessionInfo.hostId === currentRoom?.hostId) {
-                const session = new GameSession(socket, sessionInfo);
+                const session = new GameSession(socket, sessionInfo, me.id);
                 onJoinSession(session);
             } else if (currentRoom === undefined) {
                 if (
@@ -55,7 +56,7 @@
                         `Voulez-vous rejoindre maintenant la session de jeu ${sessionInfo.name} ?`,
                     )
                 ) {
-                    const session = new GameSession(socket, sessionInfo);
+                    const session = new GameSession(socket, sessionInfo, me.id);
                     onJoinSession(session);
                 }
             }
