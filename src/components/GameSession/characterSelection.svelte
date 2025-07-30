@@ -1,35 +1,28 @@
 <script lang="ts">
     import {
-        type GameSession,
         GamePlayerModel,
+        type GameSession,
     } from "../../models/GameSession";
     import { type Character, characters } from "../../models/characters.ts";
+    import { getStoryMetadata } from "../../models/gameStory.ts";
     import SmallPlayerCard from "../SmallPlayerCard.svelte";
 
-    const { gameSession } = $props<{
+    const { gameSession, storyId } = $props<{
         gameSession: GameSession;
+        storyId: string;
     }>();
 
-    let roles: any[] = $state([
-        {
-            tag: "dad",
-            name: "The dad of Tony",
-        },
-        {
-            tag: "wolf",
-            name: "Tony's domestic wolf",
-        },
-    ]);
+    let roles: { tag: string; name: string }[] = $state([]);
     let assignedPlayer: Record<string, GamePlayerModel> = $state({});
     let myRole: string = $state("");
     let selectedCharacter: Character | undefined = $state(undefined);
     let readyToPlay: boolean = $state(false);
 
-    // getStoryRoles()
-    //     .then((data) => {
-    //         roles = data;
-    //     })
-    //     .catch((err) => alert(err));
+    getStoryMetadata(storyId)
+        .then((data) => {
+            roles = data.roles;
+        })
+        .catch((err) => alert(err));
 
     function selectedRole(tag: string, user: GamePlayerModel) {
         // remove previous votes
