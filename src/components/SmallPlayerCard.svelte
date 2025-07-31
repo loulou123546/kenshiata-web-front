@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { type User, getAvatarSource } from "../models/user.ts";
+    import { Character, getAvatarSource } from "../models/characters.ts";
     let { user, onclick, onedit, customClass } = $props<{
-        user: User;
+        user: Character | { name: string; avatar: string };
         onclick: () => void;
         onedit?: () => void;
         customClass?: string;
@@ -22,9 +22,9 @@
     <img
         class="w-14 h-14 rounded-full"
         src={getAvatarSource(user.avatar)}
-        alt="Avatar de {user.username}"
+        alt="Avatar de {user.name}"
     />
-    <h3 class="text-xl mx-4">{user.username}</h3>
+    <h3 class="text-xl mx-4">{user.name}</h3>
     {#if onedit}
         <a
             class="text-gray-600 hover:text-gray-900"

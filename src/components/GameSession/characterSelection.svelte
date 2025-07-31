@@ -69,10 +69,9 @@
                     avatar: assignedPlayer?.[role.tag]
                         ? assignedPlayer[role.tag]?.data?.avatar
                         : "add.png",
-                    username: assignedPlayer?.[role.tag]
+                    name: assignedPlayer?.[role.tag]
                         ? `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`
                         : role.name,
-                    online: assignedPlayer?.[role.tag] ? "yes" : "no",
                 }}
                 onclick={() => (myRole = role.tag)}
             />
@@ -89,11 +88,7 @@
                 customClass={selectedCharacter?.id === character.id
                     ? "bg-gray-200 text-black border-4 border-blue-500"
                     : "bg-gray-200 text-black hover:bg-gray-400"}
-                user={{
-                    avatar: character.avatar,
-                    username: character.name,
-                    online: "no",
-                }}
+                user={character}
                 onclick={() => {
                     selectedCharacter = character;
                 }}
@@ -126,8 +121,7 @@
                         : "bg-gray-200 text-black hover:bg-gray-400"}
                     user={{
                         avatar: assignedPlayer[role.tag]?.data?.avatar,
-                        username: `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`,
-                        online: "yes",
+                        name: `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`,
                     }}
                     onclick={() => {}}
                 />
@@ -136,8 +130,7 @@
                     customClass="bg-gray-200 text-black hover:bg-gray-400"
                     user={{
                         avatar: "add.png",
-                        username: role.name,
-                        online: "no",
+                        name: role.name,
                     }}
                     onclick={() => {}}
                 />

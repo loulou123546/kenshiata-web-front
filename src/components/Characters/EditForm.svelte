@@ -1,34 +1,38 @@
 <script lang="ts">
-import { createCharacter, editCharacter } from "../../models/characters.ts";
-import { Avatars, getAvatarSource } from "../../models/user.ts";
-const { onclose, source } = $props();
+    import {
+        createCharacter,
+        editCharacter,
+        Avatars,
+        getAvatarSource,
+    } from "../../models/characters.ts";
+    const { onclose, source } = $props();
 
-// biome-ignore lint: username is modified on bind:value
-let username: string = $state(source?.name ?? "");
-let avatar: string = $state(
-	source?.avatar ?? Avatars[Math.floor(Math.random() * Avatars.length)],
-);
+    // biome-ignore lint: username is modified on bind:value
+    let username: string = $state(source?.name ?? "");
+    let avatar: string = $state(
+        source?.avatar ?? Avatars[Math.floor(Math.random() * Avatars.length)],
+    );
 
-async function save() {
-	if (source?.id && source?.userId) {
-		await editCharacter({
-			id: source.id,
-			userId: source.userId,
-			name: username,
-			avatar: avatar,
-		});
-	} else {
-		await createCharacter({
-			name: username,
-			avatar: avatar,
-		});
-	}
-	onclose();
-}
+    async function save() {
+        if (source?.id && source?.userId) {
+            await editCharacter({
+                id: source.id,
+                userId: source.userId,
+                name: username,
+                avatar: avatar,
+            });
+        } else {
+            await createCharacter({
+                name: username,
+                avatar: avatar,
+            });
+        }
+        onclose();
+    }
 
-function setAvatarImage(avatarImg: string) {
-	avatar = avatarImg;
-}
+    function setAvatarImage(avatarImg: string) {
+        avatar = avatarImg;
+    }
 </script>
 
 <div

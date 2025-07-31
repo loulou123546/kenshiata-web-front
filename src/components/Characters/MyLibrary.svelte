@@ -34,11 +34,7 @@
                         customClass={selected?.id === character.id
                             ? "bg-gray-200 text-black border-5 border-blue-500"
                             : "bg-gray-200 text-black hover:bg-gray-400"}
-                        user={{
-                            avatar: character.avatar,
-                            username: character.name,
-                            online: "no",
-                        }}
+                        user={character}
                         onclick={() => {
                             selected = character;
                         }}
@@ -50,8 +46,7 @@
                 <SmallPlayerCard
                     user={{
                         avatar: "add.png",
-                        username: "Ajouter",
-                        online: "no",
+                        name: "Ajouter",
                     }}
                     onclick={() => {
                         editing = {};

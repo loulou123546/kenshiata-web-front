@@ -19,6 +19,23 @@ export type NewCharacter = z.infer<typeof NewCharacter>;
 export const CharacterId = Character.pick({ userId: true, id: true });
 export type CharacterId = z.infer<typeof CharacterId>;
 
+export const Avatars = [
+	"default.png",
+	"boykisser.jpg",
+	"purple.jpg",
+	"kenshiata_ryugy_2025.png",
+	"tetsuo.png",
+	"fiverr.jpg",
+	"bluewolf.webp",
+];
+
+export function getAvatarSource(
+	avatar: string | undefined = undefined,
+): string {
+	if (!avatar) return `/avatar/add.png`;
+	else return `/avatar/${avatar}`;
+}
+
 export async function listCharacters(): Promise<Character[]> {
 	const user = await getUserData();
 	const response = await fetch(
