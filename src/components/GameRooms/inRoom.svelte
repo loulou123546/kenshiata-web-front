@@ -1,36 +1,36 @@
 <script lang="ts">
-    import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
-    import type { UserIdentity } from "../../models/user";
-    import type { User } from "../../services/auth";
-    import type SocketAPI from "../../services/socketAPI";
-    import RequestJoining from "./requestJoining.svelte";
+import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
+import type { UserIdentity } from "../../models/user";
+import type { User } from "../../services/auth";
+import type SocketAPI from "../../services/socketAPI";
+import RequestJoining from "./requestJoining.svelte";
 
-    const { socket, room, me } = $props<{
-        socket: SocketAPI;
-        room: GameRoom;
-        me: User;
-    }>();
-    let names: Record<string, UserIdentity> = $state({});
-    let btnLocked = $state(false);
+const { socket, room, me } = $props<{
+	socket: SocketAPI;
+	room: GameRoom;
+	me: User;
+}>();
+let names: Record<string, UserIdentity> = $state({});
+let btnLocked = $state(false);
 
-    getGameRoomNames(room.hostId).then((values) => {
-        names = {
-            ...names,
-            ...values,
-        };
-    });
+getGameRoomNames(room.hostId).then((values) => {
+	names = {
+		...names,
+		...values,
+	};
+});
 
-    function leaveRoom() {
-        socket.send("leave-room", { hostId: room.hostId });
-    }
+function leaveRoom() {
+	socket.send("leave-room", { hostId: room.hostId });
+}
 
-    function startGame() {
-        btnLocked = true;
-        socket.send("start-game", { hostId: room.hostId });
-        setTimeout(() => {
-            btnLocked = false;
-        }, 5000);
-    }
+function startGame() {
+	btnLocked = true;
+	socket.send("start-game", { hostId: room.hostId });
+	setTimeout(() => {
+		btnLocked = false;
+	}, 5000);
+}
 </script>
 
 <h2 class="text-2xl text-center py-4">

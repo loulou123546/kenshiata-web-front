@@ -1,15 +1,15 @@
 <script lang="ts">
-    import { Character, getAvatarSource } from "../models/characters.ts";
-    let { user, onclick, onedit, customClass } = $props<{
-        user: Character | { name: string; avatar: string };
-        onclick: () => void;
-        onedit?: () => void;
-        customClass?: string;
-    }>();
+import { type Character, getAvatarSource } from "../models/characters.ts";
+let { user, onclick, onedit, customClass } = $props<{
+	user: Character | { name: string; avatar: string };
+	onclick: () => void;
+	onedit?: () => void;
+	customClass?: string;
+}>();
 
-    if (!customClass) {
-        customClass = "bg-gray-200 text-black hover:bg-gray-400";
-    }
+if (!customClass) {
+	customClass = "bg-gray-200 text-black hover:bg-gray-400";
+}
 </script>
 
 <button

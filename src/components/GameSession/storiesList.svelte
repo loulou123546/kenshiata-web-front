@@ -1,8 +1,5 @@
 <script lang="ts">
-    import type {
-        GameSession,
-        GamePlayerModel,
-    } from "../../models/GameSession";
+import type { GamePlayerModel, GameSession } from "../../models/GameSession";
     import { type GameStory, getGameStories } from "../../models/gameStory";
     const { gameSession } = $props<{
         gameSession: GameSession;
@@ -22,9 +19,7 @@
         // remove previous votes
         for (const storyId in votes) {
             if (Array.isArray(votes?.[storyId])) {
-                votes[storyId] = votes[storyId].filter(
-                    (el) => el.userId !== user.userId,
-                );
+			votes[storyId] = votes[storyId].filter((el) => el.userId !== user.userId);
             }
         }
 

@@ -1,7 +1,6 @@
+import { atom } from "nanostores";
 import { z } from "zod";
 import { getUserData } from "../services/auth";
-import { atom } from 'nanostores';
-
 
 export const Character = z.object({
 	userId: z.string(),
@@ -87,7 +86,7 @@ export async function createCharacter(
 	}
 	const data = await response.json();
 	const char = Character.parse(data.data);
-	
+
 	characters.set([...characters.get(), char]);
 	return char;
 }
@@ -111,7 +110,7 @@ export async function editCharacter(character: Character): Promise<Character> {
 	}
 	const data = await response.json();
 	const char = Character.parse(data.data);
-	
-	characters.set(characters.get().map(el => el.id === char.id ? char : el));
+
+	characters.set(characters.get().map((el) => (el.id === char.id ? char : el)));
 	return char;
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
-    import MatchMaking from "../../components/MatchMaking.svelte";
-    import LoginWall from "../../components/LoginWall.svelte";
     import CharacterLibrary from "../../components/Characters/MyLibrary.svelte";
     import GameSessionPage from "../../components/GameSession/index.svelte";
+import LoginWall from "../../components/LoginWall.svelte";
+import MatchMaking from "../../components/MatchMaking.svelte";
     import type { GameSession } from "../../models/GameSession.ts";
 
     let okLogin: boolean = $state(false);

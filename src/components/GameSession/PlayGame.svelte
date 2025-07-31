@@ -1,13 +1,13 @@
 <script lang="ts">
-    import type {
-        GameSession,
-        GamePlayerModel,
-    } from "../../models/GameSession";
     import {
         InkData,
         type StoryLine,
         type Storychoice,
     } from "../../models/GamePlay";
+    import type {
+        GamePlayerModel,
+        GameSession,
+    } from "../../models/GameSession";
     import { getAvatarSource } from "../../models/characters.ts";
 
     const { gameSession }: { gameSession: GameSession } = $props<{
@@ -24,8 +24,8 @@
         );
     }
 
-    gameSession.addListener("game-continue", (raw: any) => {
-        const data = InkData.parse(raw.ink_data);
+    gameSession.addListener("game-continue", (raw: { ink_data: unknown }) => {
+        const data = InkData.parse(raw?.ink_data);
         texts = [...texts, ...data.lines];
         choices = data.choices;
         votes = [];

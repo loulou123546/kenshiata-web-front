@@ -1,8 +1,5 @@
 <script lang="ts">
-    import {
-        GamePlayerModel,
-        type GameSession,
-    } from "../../models/GameSession";
+import { GamePlayerModel, type GameSession } from "../../models/GameSession";
     import { type Character, characters } from "../../models/characters.ts";
     import { getStoryMetadata } from "../../models/gameStory.ts";
     import SmallPlayerCard from "../SmallPlayerCard.svelte";

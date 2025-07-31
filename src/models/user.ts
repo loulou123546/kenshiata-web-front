@@ -6,4 +6,3 @@ export const UserIdentity = z.object({
 	groups: z.array(z.string()),
 });
 export type UserIdentity = z.infer<typeof UserIdentity>;
-
