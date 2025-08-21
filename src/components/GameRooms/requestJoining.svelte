@@ -1,32 +1,32 @@
 <script lang="ts">
-    import type { GameRoom } from "../../models/gameRoom";
-    import { UserIdentity } from "../../models/user";
-    import type SocketAPI from "../../services/socketAPI";
+import type { GameRoom } from "@shared/types/GameRoom";
+import { UserIdentity } from "@shared/types/User";
+import type SocketAPI from "../../services/socketAPI";
 
-    const { socket, room } = $props<{
-        socket: SocketAPI;
-        room: GameRoom;
-    }>();
+const { socket, room } = $props<{
+	socket: SocketAPI;
+	room: GameRoom;
+}>();
 
-    let requests: UserIdentity[] = $state([]);
+let requests: UserIdentity[] = $state([]);
 
-    socket.addListener(
-        "request-join-room",
-        (data: { hostId: unknown; user: unknown }) => {
-            if (data?.hostId !== room.hostId) return;
-            const user = UserIdentity.parse(data?.user);
-            requests.push(user);
-        },
-    );
+socket.addListener(
+	"request-join-room",
+	(data: { hostId: unknown; user: unknown }) => {
+		if (data?.hostId !== room.hostId) return;
+		const user = UserIdentity.parse(data?.user);
+		requests.push(user);
+	},
+);
 
-    function respondInvite(userId: string, accept: boolean) {
-        socket.send("respond-join-room", {
-            hostId: room.hostId,
-            userId,
-            accept,
-        });
-        requests = requests.filter((player) => player.id !== userId);
-    }
+function respondInvite(userId: string, accept: boolean) {
+	socket.send("respond-join-room", {
+		hostId: room.hostId,
+		userId,
+		accept,
+	});
+	requests = requests.filter((player) => player.id !== userId);
+}
 </script>
 
 <ul class="w-full flex flex-col flex-wrap justify-center gap-4 py-8">

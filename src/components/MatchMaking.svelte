@@ -1,6 +1,8 @@
 <script lang="ts">
+import { GameRoom } from "@shared/types/GameRoom";
+import { GameSession as GameSessionModel } from "@shared/types/GameSession";
+import { z } from "zod";
 import { GameSession } from "../models/GameSession";
-import type { GameRoom } from "../models/gameRoom";
 import { type User, getUserData } from "../services/auth";
 import SocketAPI from "../services/socketAPI";
 import Create from "./GameRooms/create.svelte";
@@ -23,28 +25,29 @@ const currentRoom: GameRoom | undefined = $derived(
 );
 
 socketP.then((socket) => {
-	socket.addListener(
-		"update-game-rooms",
-		({
-			updateRooms,
-			removedRooms,
-		}: {
-			updateRooms: GameRoom[];
-			removedRooms: string[];
-		}) => {
-			rooms = [
-				...rooms.filter(
-					(room) =>
-						!updateRooms.some((r) => r.hostId === room.hostId) &&
-						!removedRooms.includes(room.hostId),
-				),
-				...updateRooms,
-			];
-		},
-	);
+	socket.addListener("update-game-rooms", (data: unknown) => {
+		const { updateRooms, removedRooms } = z
+			.object({
+				updateRooms: z.array(GameRoom),
+				removedRooms: z.array(z.string()),
+			})
+			.parse(data);
+		rooms = [
+			...rooms.filter(
+				(room) =>
+					!updateRooms.some((r) => r.hostId === room.hostId) &&
+					!removedRooms.includes(room.hostId),
+			),
+			...updateRooms,
+		];
+	});
 
-	socket.addListener("start-game", (sessionInfo: any) => {
+	socket.addListener("start-game", (data: unknown) => {
 		if (!me) return;
+		const sessionInfo = GameSessionModel.extend({
+			hostId: z.string(),
+		}).parse(data);
+
 		if (sessionInfo.hostId === currentRoom?.hostId) {
 			const session = new GameSession(socket, sessionInfo, me.id);
 			onJoinSession(session);

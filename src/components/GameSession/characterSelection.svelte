@@ -1,56 +1,65 @@
 <script lang="ts">
-import { GamePlayerModel, type GameSession } from "../../models/GameSession";
-    import { type Character, characters } from "../../models/characters.ts";
-    import { getStoryMetadata } from "../../models/gameStory.ts";
-    import SmallPlayerCard from "../SmallPlayerCard.svelte";
+import type { Character } from "@shared/types/Character";
+import { GamePlayer } from "@shared/types/GamePlayer";
+import { z } from "zod";
+import type { GameSession } from "../../models/GameSession";
+import { characters } from "../../models/characters";
+import { getStoryMetadata } from "../../models/gameStory";
+import SmallPlayerCard from "../SmallPlayerCard.svelte";
 
-    const { gameSession, storyId } = $props<{
-        gameSession: GameSession;
-        storyId: string;
-    }>();
+const { gameSession, storyId } = $props<{
+	gameSession: GameSession;
+	storyId: string;
+}>();
 
-    let roles: { tag: string; name: string }[] = $state([]);
-    let assignedPlayer: Record<string, GamePlayerModel> = $state({});
-    let myRole: string = $state("");
-    let selectedCharacter: Character | undefined = $state(undefined);
-    let readyToPlay: boolean = $state(false);
+let roles: { tag: string; name: string }[] = $state([]);
+const assignedPlayer: Record<string, GamePlayer> = $state({});
+let myRole: string = $state("");
+let selectedCharacter: Character | undefined = $state(undefined);
+let readyToPlay: boolean = $state(false);
 
-    getStoryMetadata(storyId)
-        .then((data) => {
-            roles = data.roles;
-        })
-        .catch((err) => alert(err));
+getStoryMetadata(storyId)
+	.then((data) => {
+		roles = data.roles;
+	})
+	.catch((err) => alert(err));
 
-    function selectedRole(tag: string, user: GamePlayerModel) {
-        // remove previous votes
-        for (const tag in assignedPlayer) {
-            if (assignedPlayer[tag]?.userId === user.userId) {
-                delete assignedPlayer[tag];
-            }
-        }
+function selectedRole(tag: string, user: GamePlayer) {
+	// remove previous votes
+	for (const tag in assignedPlayer) {
+		if (assignedPlayer[tag]?.userId === user.userId) {
+			delete assignedPlayer[tag];
+		}
+	}
 
-        // add new vote
-        assignedPlayer[tag] = user;
-    }
+	// add new vote
+	assignedPlayer[tag] = user;
+}
 
-    gameSession.addListener("player-ready", (data: any) => {
-        const newData = GamePlayerModel.parse(data?.player);
-        gameSession.setPlayer(newData);
-        selectedRole(data.role?.tag, newData);
-    });
+gameSession.addListener("player-ready", (data: unknown) => {
+	const newData = z
+		.object({ player: GamePlayer, role: z.object({ tag: z.string() }) })
+		.parse(data);
+	gameSession.setPlayer(newData.player);
+	selectedRole(newData.role.tag, newData.player);
+});
 
-    gameSession.addListener("reject-player-ready", (data: any) => {
-        myRole = "";
-        readyToPlay = false;
-    });
+gameSession.addListener("reject-player-ready", (data: unknown) => {
+	myRole = "";
+	readyToPlay = false;
+});
 
-    function readyPlay() {
-        readyToPlay = true;
-        gameSession.sendServer("player-ready", {
-            character: selectedCharacter,
-            role: { tag: myRole },
-        });
-    }
+function readyPlay() {
+	readyToPlay = true;
+	gameSession.sendServer("player-ready", {
+		character: selectedCharacter,
+		role: { tag: myRole },
+	});
+}
+
+function select_character(char: Character) {
+	selectedCharacter = char;
+}
 </script>
 
 {#if !readyToPlay}
@@ -63,9 +72,7 @@ import { GamePlayerModel, type GameSession } from "../../models/GameSession";
                     ? "bg-gray-200 text-black border-4 border-blue-500"
                     : "bg-gray-200 text-black hover:bg-gray-400"}
                 user={{
-                    avatar: assignedPlayer?.[role.tag]
-                        ? assignedPlayer[role.tag]?.data?.avatar
-                        : "add.png",
+                    avatar: assignedPlayer?.[role.tag]?.data?.avatar ?? "add.png",
                     name: assignedPlayer?.[role.tag]
                         ? `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`
                         : role.name,
@@ -86,9 +93,7 @@ import { GamePlayerModel, type GameSession } from "../../models/GameSession";
                     ? "bg-gray-200 text-black border-4 border-blue-500"
                     : "bg-gray-200 text-black hover:bg-gray-400"}
                 user={character}
-                onclick={() => {
-                    selectedCharacter = character;
-                }}
+                onclick={() => select_character(character)}
             />
         {/each}
     </div>
@@ -117,7 +122,7 @@ import { GamePlayerModel, type GameSession } from "../../models/GameSession";
                         ? "bg-gray-200 text-black border-4 border-blue-500"
                         : "bg-gray-200 text-black hover:bg-gray-400"}
                     user={{
-                        avatar: assignedPlayer[role.tag]?.data?.avatar,
+                        avatar: assignedPlayer[role.tag]?.data?.avatar ?? "add.png",
                         name: `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`,
                     }}
                     onclick={() => {}}

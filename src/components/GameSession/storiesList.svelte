@@ -1,44 +1,50 @@
 <script lang="ts">
-import type { GamePlayerModel, GameSession } from "../../models/GameSession";
-    import { type GameStory, getGameStories } from "../../models/gameStory";
-    const { gameSession } = $props<{
-        gameSession: GameSession;
-    }>();
+import type { GamePlayer } from "@shared/types/GamePlayer";
+import type { GameSession } from "@shared/types/GameSession";
+import type { GameStory } from "@shared/types/GameStory";
+import { z } from "zod";
+import { getGameStories } from "../../models/gameStory";
+const { gameSession } = $props<{
+	gameSession: GameSession;
+}>();
 
-    let stories: GameStory[] = $state([]);
-    let votes: Record<string, GamePlayerModel[]> = $state({});
-    let myvote: string = $state("");
+let stories: GameStory[] = $state([]);
+const votes: Record<string, GamePlayer[]> = $state({});
+let myvote: string = $state("");
 
-    getGameStories()
-        .then((data) => {
-            stories = data;
-        })
-        .catch((err) => alert(err));
+getGameStories()
+	.then((data) => {
+		stories = data;
+	})
+	.catch((err) => alert(err));
 
-    function saveVote(storyId: string, user: GamePlayerModel) {
-        // remove previous votes
-        for (const storyId in votes) {
-            if (Array.isArray(votes?.[storyId])) {
+function saveVote(storyId: string, user: GamePlayer) {
+	// remove previous votes
+	for (const storyId in votes) {
+		if (Array.isArray(votes?.[storyId])) {
 			votes[storyId] = votes[storyId].filter((el) => el.userId !== user.userId);
-            }
-        }
+		}
+	}
 
-        // add new vote
-        if (!votes?.[storyId]) votes[storyId] = [];
-        votes[storyId].push(user);
-    }
+	// add new vote
+	if (!votes?.[storyId]) votes[storyId] = [];
+	votes[storyId].push(user);
+}
 
-    gameSession.addListener("vote-story", (data: any) => {
-        const target = gameSession.getPlayer(data.userId);
-        saveVote(data.storyId, target);
-    });
+gameSession.addListener("vote-story", (data: unknown) => {
+	const { userId, storyId } = z
+		.object({ userId: z.string(), storyId: z.string() })
+		.parse(data);
+	const target = gameSession.getPlayer(userId);
+	saveVote(storyId, target);
+});
 
-    function vote(storyId: string) {
-        gameSession.sendServer("vote-story", {
-            storyId,
-        });
-        myvote = storyId;
-    }
+function vote(storyId: string) {
+	gameSession.sendServer("vote-story", {
+		storyId,
+	});
+	myvote = storyId;
+}
 </script>
 
 <h2 class="text-2xl font-semibold pl-12 py-4">Aventures disponibles</h2>

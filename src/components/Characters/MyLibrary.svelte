@@ -1,5 +1,6 @@
 <script lang="ts">
-import { type Character, listCharacters } from "../../models/characters.ts";
+import type { Character } from "@shared/types/Character";
+import { listCharacters } from "../../models/characters";
 import SmallPlayerCard from "../SmallPlayerCard.svelte";
 import EditForm from "./EditForm.svelte";
 

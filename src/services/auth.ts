@@ -12,9 +12,12 @@ export const User = z.object({
 export type User = z.infer<typeof User>;
 
 class NanoStoreAsStoreManager {
-	private mapStore: MapStore<any>;
+	private mapStore: MapStore<Record<string, string | undefined>>;
 	constructor(main_key: string) {
-		this.mapStore = persistentMap<any>(main_key, {});
+		this.mapStore = persistentMap<Record<string, string | undefined>>(
+			main_key,
+			{},
+		);
 	}
 	async get(key: string): Promise<null | string> {
 		return this.mapStore.get()?.[key] ?? null;

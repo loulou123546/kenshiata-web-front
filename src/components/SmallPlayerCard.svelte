@@ -1,5 +1,6 @@
 <script lang="ts">
-import { type Character, getAvatarSource } from "../models/characters.ts";
+import type { Character } from "@shared/types/Character";
+import { getAvatarSource } from "../models/characters";
 let { user, onclick, onedit, customClass } = $props<{
 	user: Character | { name: string; avatar: string };
 	onclick: () => void;

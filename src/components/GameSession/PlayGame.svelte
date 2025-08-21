@@ -1,49 +1,48 @@
 <script lang="ts">
-    import {
-        InkData,
-        type StoryLine,
-        type Storychoice,
-    } from "../../models/GamePlay";
-    import type {
-        GamePlayerModel,
-        GameSession,
-    } from "../../models/GameSession";
-    import { getAvatarSource } from "../../models/characters.ts";
+import type { GamePlayer } from "@shared/types/GamePlayer";
+import {
+	type StoryLine,
+	StorySituation,
+	type Storychoice,
+} from "@shared/types/InkStory";
+import { z } from "zod";
+import type { GameSession } from "../../models/GameSession";
+import { getAvatarSource } from "../../models/characters";
 
-    const { gameSession }: { gameSession: GameSession } = $props<{
-        gameSession: GameSession;
-    }>();
+const { gameSession }: { gameSession: GameSession } = $props<{
+	gameSession: GameSession;
+}>();
 
-    let texts: StoryLine[] = $state([]);
-    let choices: Storychoice[] = $state([]);
-    let votes: GamePlayerModel[][] = $state([]);
+let texts: StoryLine[] = $state([]);
+let choices: Storychoice[] = $state([]);
+let votes: GamePlayer[][] = $state([]);
 
-    function resetPlayerVote(userId: string) {
-        votes = votes.map((players) =>
-            players.filter((player) => player.userId !== userId),
-        );
-    }
+function resetPlayerVote(userId: string) {
+	votes = votes.map((players) =>
+		players.filter((player) => player.userId !== userId),
+	);
+}
 
-    gameSession.addListener("game-continue", (raw: { ink_data: unknown }) => {
-        const data = InkData.parse(raw?.ink_data);
-        texts = [...texts, ...data.lines];
-        choices = data.choices;
-        votes = [];
-        for (let i = 0; i < choices.length; i++) {
-            votes[i] = [];
-        }
-    });
+gameSession.addListener("game-continue", (raw: unknown) => {
+	const data = z.object({ ink_data: StorySituation }).parse(raw).ink_data;
+	texts = [...texts, ...data.lines];
+	choices = data.choices;
+	votes = [];
+	for (let i = 0; i < choices.length; i++) {
+		votes[i] = [];
+	}
+});
 
-    function voteForChoice(index: number) {
-        const me = gameSession.getMyPlayer();
-        if (me === undefined) return;
-        resetPlayerVote(me.userId);
-        votes[index].push(me);
+function voteForChoice(index: number) {
+	const me = gameSession.getMyPlayer();
+	if (me === undefined) return;
+	resetPlayerVote(me.userId);
+	votes[index].push(me);
 
-        gameSession.sendServer("game-choice", {
-            choiceIndex: index,
-        });
-    }
+	gameSession.sendServer("game-choice", {
+		choiceIndex: index,
+	});
+}
 </script>
 
 <div class="p-8 bg-gray-300">

@@ -1,24 +1,7 @@
+import { GameStory, GameStoryMetadata } from "@shared/types/GameStory";
 import { z } from "zod";
 // import { persistentAtom } from '@nanostores/persistent';
 import { getUserData } from "../services/auth";
-
-export const GameStory = z.object({
-	id: z.string().uuid(),
-	name: z.string().min(1),
-});
-export type GameStory = z.infer<typeof GameStory>;
-
-export const GameStoryMetadata = z.object({
-	id: z.string().uuid(),
-	title: z.string().optional(),
-	roles: z.array(
-		z.object({
-			tag: z.string(),
-			name: z.string(),
-		}),
-	),
-});
-export type GameStoryMetadata = z.infer<typeof GameStoryMetadata>;
 
 // export const cacheUsernames = persistentAtom<Record<string, string>>('username-cache', {'__cache_age__': `${Date.now()/1000}`}, {
 //   encode: JSON.stringify,

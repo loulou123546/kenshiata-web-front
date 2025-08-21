@@ -1,6 +1,7 @@
 <script lang="ts">
-import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
-import type { UserIdentity } from "../../models/user";
+import type { GameRoom } from "@shared/types/GameRoom";
+import type { UserIdentity } from "@shared/types/User";
+import { getGameRoomNames } from "../../models/gameRoom";
 import type SocketAPI from "../../services/socketAPI";
 
 const { socket, rooms } = $props<{
@@ -10,7 +11,7 @@ const { socket, rooms } = $props<{
 
 let selectedRoom: GameRoom | undefined = $state(undefined);
 let names: Record<string, UserIdentity> = $state({});
-let loading: Promise<any> = $state(Promise.resolve());
+let loading: Promise<void> = $state(Promise.resolve());
 let joiningRooms = $state<Record<string, "pending" | "accepted" | "refused">>(
 	{},
 );
@@ -48,7 +49,7 @@ function joinRoom(hostId: string) {
 	socket.send("request-join-room", { hostId });
 }
 
-function setLoading(promise: Promise<any>) {
+function setLoading(promise: Promise<void>) {
 	loading = promise;
 	return promise;
 }

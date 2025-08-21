@@ -4,7 +4,7 @@ import {
 	createCharacter,
 	editCharacter,
 	getAvatarSource,
-} from "../../models/characters.ts";
+} from "../../models/characters";
 const { onclose, source } = $props();
 
 // biome-ignore lint: username is modified on bind:value

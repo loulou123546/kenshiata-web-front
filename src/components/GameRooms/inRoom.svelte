@@ -1,6 +1,7 @@
 <script lang="ts">
-import { type GameRoom, getGameRoomNames } from "../../models/gameRoom";
-import type { UserIdentity } from "../../models/user";
+import type { GameRoom } from "@shared/types/GameRoom";
+import type { UserIdentity } from "@shared/types/User";
+import { getGameRoomNames } from "../../models/gameRoom";
 import type { User } from "../../services/auth";
 import type SocketAPI from "../../services/socketAPI";
 import RequestJoining from "./requestJoining.svelte";

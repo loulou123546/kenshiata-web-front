@@ -1,42 +1,42 @@
 <script lang="ts">
-	import type {
-		GamePlayerModel,
-		GameSession,
-		GameSessionModel,
-	} from "../../models/GameSession";
-	import { GameStory } from "../../models/gameStory";
-	import PlayGame from "./PlayGame.svelte";
-	import CharacterSelection from "./characterSelection.svelte";
-	import StoriesList from "./storiesList.svelte";
+import type {
+	GameSessionData,
+	GameSession as GameSessionModel,
+} from "@shared/types/GameSession";
+import { GameStory } from "@shared/types/GameStory";
+import type { GameSession } from "../../models/GameSession";
+import PlayGame from "./PlayGame.svelte";
+import CharacterSelection from "./characterSelection.svelte";
+import StoriesList from "./storiesList.svelte";
 
-	const { gameSession } = $props<{
-		gameSession: GameSession;
-	}>();
+const { gameSession } = $props<{
+	gameSession: GameSession;
+}>();
 
-	let story: GameStory | undefined = $state(undefined);
-	let playing: boolean = $state(false);
+let story: GameStory | undefined = $state(undefined);
+let playing: boolean = $state(false);
 
-	gameSession.addListener(
-		"start-story",
-		(data: { session_data: GameSessionModel["data"] }) => {
-			const sd = data.session_data;
-			gameSession.data = sd;
-			story = GameStory.parse(sd?.story);
-		},
-	);
+gameSession.addListener(
+	"start-story",
+	(data: { session_data: GameSessionData }) => {
+		const sd = data.session_data;
+		gameSession.data = sd;
+		story = GameStory.parse(sd?.story);
+	},
+);
 
-	gameSession.addListener(
-		"game-running",
-		(data: { session: GameSessionModel }) => {
-			gameSession.sessionId = data.session.id;
-			gameSession.name = data.session.name;
-			gameSession.data = data.session.data;
-			data.session.players.forEach((el: GamePlayerModel) => {
-				gameSession.setPlayer(el);
-			});
-			playing = true;
-		},
-	);
+gameSession.addListener(
+	"game-running",
+	(data: { session: GameSessionModel }) => {
+		gameSession.sessionId = data.session.id;
+		gameSession.name = data.session.name;
+		gameSession.data = data.session.data;
+		for (const player of data.session.players) {
+			gameSession.setPlayer(player);
+		}
+		playing = true;
+	},
+);
 </script>
 
 {#if !story}

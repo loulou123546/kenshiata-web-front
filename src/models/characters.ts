@@ -1,22 +1,8 @@
+import { Character, type NewCharacter } from "@shared/types/Character";
 import { atom } from "nanostores";
-import { z } from "zod";
 import { getUserData } from "../services/auth";
 
-export const Character = z.object({
-	userId: z.string(),
-	id: z.string().uuid(),
-	name: z.string().min(1, "Character name is required"),
-	avatar: z.string(),
-});
-export type Character = z.infer<typeof Character>;
-
 export const characters = atom<Character[]>([]);
-
-export const NewCharacter = Character.omit({ userId: true, id: true });
-export type NewCharacter = z.infer<typeof NewCharacter>;
-
-export const CharacterId = Character.pick({ userId: true, id: true });
-export type CharacterId = z.infer<typeof CharacterId>;
 
 export const Avatars = [
 	"default.png",
@@ -31,8 +17,8 @@ export const Avatars = [
 export function getAvatarSource(
 	avatar: string | undefined = undefined,
 ): string {
-	if (!avatar) return `/avatar/add.png`;
-	else return `/avatar/${avatar}`;
+	if (!avatar) return "/avatar/add.png";
+	return `/avatar/${avatar}`;
 }
 
 export async function listCharacters(): Promise<Character[]> {
@@ -53,7 +39,7 @@ export async function listCharacters(): Promise<Character[]> {
 	}
 	const data = await response.json();
 	const chars = data?.data
-		?.map((character: any) => {
+		?.map((character: unknown) => {
 			try {
 				return Character.parse(character);
 			} catch {

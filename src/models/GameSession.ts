@@ -1,31 +1,19 @@
-import { z } from "zod";
+import type { GamePlayer } from "@shared/types/GamePlayer";
+import {
+	type GameSessionData,
+	GameSession as GameSessionModel,
+} from "@shared/types/GameSession";
 import type SocketAPI from "../services/socketAPI";
-
-export const GamePlayerModel = z.object({
-	socketId: z.string(),
-	userId: z.string(),
-	username: z.string(),
-	data: z.record(z.any()).optional(),
-});
-export type GamePlayerModel = z.infer<typeof GamePlayerModel>;
-
-export const GameSessionModel = z.object({
-	id: z.string(),
-	players: z.array(GamePlayerModel),
-	name: z.string(),
-	data: z.record(z.any()).optional(),
-});
-export type GameSessionModel = z.infer<typeof GameSessionModel>;
 
 export class GameSession {
 	socket: SocketAPI;
 	sessionId: string;
-	players: GamePlayerModel[] = [];
+	players: GamePlayer[] = [];
 	myUserId: string;
 	name = "";
-	data: Record<string, any> = {};
+	data: GameSessionData = {};
 
-	constructor(socket: SocketAPI, data: any, myUserId: string) {
+	constructor(socket: SocketAPI, data: GameSessionModel, myUserId: string) {
 		const info = GameSessionModel.parse(data);
 		this.socket = socket;
 		this.sessionId = info.id;
@@ -39,15 +27,15 @@ export class GameSession {
 		return this.players.length;
 	}
 
-	public getPlayer(id: string): GamePlayerModel | undefined {
+	public getPlayer(id: string): GamePlayer | undefined {
 		return this.players.find((pl) => pl.userId === id || pl.socketId === id);
 	}
 
-	public getMyPlayer(): GamePlayerModel | undefined {
+	public getMyPlayer(): GamePlayer | undefined {
 		return this.getPlayer(this.myUserId);
 	}
 
-	public setPlayer(player: GamePlayerModel) {
+	public setPlayer(player: GamePlayer) {
 		let found = false;
 		this.players = this.players.map((pl) => {
 			if (pl.userId === player.userId || pl.socketId === player.socketId) {
@@ -73,7 +61,7 @@ export class GameSession {
 		});
 	}
 
-	public addListener(action: string, callback: (data: any) => void) {
+	public addListener(action: string, callback: (data: unknown) => void) {
 		this.socket.addListener(action, callback);
 	}
 
