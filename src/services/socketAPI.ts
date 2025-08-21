@@ -1,12 +1,10 @@
-import { GameNetwork } from "../models/GameNetwork";
-import type { User } from "../models/user";
 import { getUserData } from "./auth";
 
-type Logger = (...data: any[]) => void;
+type Logger = (...data: unknown[]) => void;
 
 export default class SocketAPI {
 	private socket: WebSocket | null = null;
-	private listeners: { [key: string]: ((data: any) => void)[] } = {};
+	private listeners: { [key: string]: ((data: unknown) => void)[] } = {};
 	private logger: Logger = console.log;
 
 	constructor({ logger, token }: { logger?: Logger; token: string }) {
@@ -26,9 +24,9 @@ export default class SocketAPI {
 			this.logger("Voici un message du serveur", event.data);
 			const data = JSON.parse(event.data);
 			if (this.listeners[data.action]) {
-				this.listeners[data.action].forEach((callback: (data: any) => void) => {
+				for (const callback of this.listeners[data.action]) {
 					callback(data);
-				});
+				}
 			}
 		});
 	}
@@ -65,7 +63,7 @@ export default class SocketAPI {
 		);
 	}
 
-	public addListener(action: string, callback: (data: any) => void) {
+	public addListener(action: string, callback: (data: unknown) => void) {
 		if (!this.listeners[action]) this.listeners[action] = [];
 		this.listeners[action].push(callback);
 	}

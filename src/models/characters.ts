@@ -1,19 +1,25 @@
-import { z } from "zod";
+import { Character, type NewCharacter } from "@shared/types/Character";
+import { atom } from "nanostores";
 import { getUserData } from "../services/auth";
 
-export const Character = z.object({
-	userId: z.string(),
-	id: z.string().uuid(),
-	name: z.string().min(1, "Character name is required"),
-	avatar: z.string(),
-});
-export type Character = z.infer<typeof Character>;
+export const characters = atom<Character[]>([]);
 
-export const NewCharacter = Character.omit({ userId: true, id: true });
-export type NewCharacter = z.infer<typeof NewCharacter>;
+export const Avatars = [
+	"default.png",
+	"boykisser.jpg",
+	"purple.jpg",
+	"kenshiata_ryugy_2025.png",
+	"tetsuo.png",
+	"fiverr.jpg",
+	"bluewolf.webp",
+];
 
-export const CharacterId = Character.pick({ userId: true, id: true });
-export type CharacterId = z.infer<typeof CharacterId>;
+export function getAvatarSource(
+	avatar: string | undefined = undefined,
+): string {
+	if (!avatar) return "/avatar/add.png";
+	return `/avatar/${avatar}`;
+}
 
 export async function listCharacters(): Promise<Character[]> {
 	const user = await getUserData();
@@ -32,8 +38,8 @@ export async function listCharacters(): Promise<Character[]> {
 		throw new Error("Failed to fetch characters");
 	}
 	const data = await response.json();
-	return data?.data
-		?.map((character: any) => {
+	const chars = data?.data
+		?.map((character: unknown) => {
 			try {
 				return Character.parse(character);
 			} catch {
@@ -41,6 +47,8 @@ export async function listCharacters(): Promise<Character[]> {
 			}
 		})
 		.filter((el: Character | undefined) => el !== undefined);
+	characters.set(chars);
+	return chars;
 }
 
 export async function createCharacter(
@@ -63,7 +71,10 @@ export async function createCharacter(
 		throw new Error("Failed to create character");
 	}
 	const data = await response.json();
-	return Character.parse(data.data);
+	const char = Character.parse(data.data);
+
+	characters.set([...characters.get(), char]);
+	return char;
 }
 
 export async function editCharacter(character: Character): Promise<Character> {
@@ -84,5 +95,8 @@ export async function editCharacter(character: Character): Promise<Character> {
 		throw new Error("Failed to edit character");
 	}
 	const data = await response.json();
-	return Character.parse(data.data);
+	const char = Character.parse(data.data);
+
+	characters.set(characters.get().map((el) => (el.id === char.id ? char : el)));
+	return char;
 }

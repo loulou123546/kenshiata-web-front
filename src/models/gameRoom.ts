@@ -1,16 +1,6 @@
-import { z } from "zod";
+import type { UserIdentity } from "@shared/types/User";
 // import { persistentAtom } from '@nanostores/persistent';
 import { getUserData } from "../services/auth";
-import type { UserIdentity } from "./user";
-
-export const GameRoom = z.object({
-	hostId: z.string().uuid(),
-	players: z.array(z.string().uuid()),
-	invites: z.array(z.string().uuid()),
-	public: z.boolean(),
-	name: z.string().min(1).max(256),
-});
-export type GameRoom = z.infer<typeof GameRoom>;
 
 // export const cacheUsernames = persistentAtom<Record<string, string>>('username-cache', {'__cache_age__': `${Date.now()/1000}`}, {
 //   encode: JSON.stringify,

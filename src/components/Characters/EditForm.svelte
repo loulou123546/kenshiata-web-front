@@ -1,6 +1,10 @@
 <script lang="ts">
-import { createCharacter, editCharacter } from "../../models/characters.ts";
-import { Avatars, getAvatarSource } from "../../models/user.ts";
+import {
+	Avatars,
+	createCharacter,
+	editCharacter,
+	getAvatarSource,
+} from "../../models/characters";
 const { onclose, source } = $props();
 
 // biome-ignore lint: username is modified on bind:value

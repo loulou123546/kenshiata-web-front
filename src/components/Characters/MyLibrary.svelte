@@ -1,5 +1,6 @@
 <script lang="ts">
-import { type Character, listCharacters } from "../../models/characters.ts";
+import type { Character } from "@shared/types/Character";
+import { listCharacters } from "../../models/characters";
 import SmallPlayerCard from "../SmallPlayerCard.svelte";
 import EditForm from "./EditForm.svelte";
 
@@ -28,17 +29,13 @@ let selected: Character | undefined = $state(undefined);
         {#await loading}
             <div class="text-white text-lg">Chargement des personnages...</div>
         {:then characters}
-            <div class="flex flex-row items-center justify-center w-full">
+            <div class="flex flex-row items-center justify-center w-full gap-8">
                 {#each characters as character}
                     <SmallPlayerCard
                         customClass={selected?.id === character.id
                             ? "bg-gray-200 text-black border-5 border-blue-500"
                             : "bg-gray-200 text-black hover:bg-gray-400"}
-                        user={{
-                            avatar: character.avatar,
-                            username: character.name,
-                            online: "no",
-                        }}
+                        user={character}
                         onclick={() => {
                             selected = character;
                         }}
@@ -50,8 +47,7 @@ let selected: Character | undefined = $state(undefined);
                 <SmallPlayerCard
                     user={{
                         avatar: "add.png",
-                        username: "Ajouter",
-                        online: "no",
+                        name: "Ajouter",
                     }}
                     onclick={() => {
                         editing = {};

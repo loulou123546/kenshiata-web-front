@@ -1,6 +1,6 @@
 <script lang="ts">
-import type { GameRoom } from "../../models/gameRoom";
-import { UserIdentity } from "../../models/user";
+import type { GameRoom } from "@shared/types/GameRoom";
+import { UserIdentity } from "@shared/types/User";
 import type SocketAPI from "../../services/socketAPI";
 
 const { socket, room } = $props<{
@@ -10,11 +10,14 @@ const { socket, room } = $props<{
 
 let requests: UserIdentity[] = $state([]);
 
-socket.addListener("request-join-room", (data: any) => {
-	if (data?.hostId !== room.hostId) return;
-	const user = UserIdentity.parse(data?.user);
-	requests.push(user);
-});
+socket.addListener(
+	"request-join-room",
+	(data: { hostId: unknown; user: unknown }) => {
+		if (data?.hostId !== room.hostId) return;
+		const user = UserIdentity.parse(data?.user);
+		requests.push(user);
+	},
+);
 
 function respondInvite(userId: string, accept: boolean) {
 	socket.send("respond-join-room", {
