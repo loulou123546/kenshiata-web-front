@@ -28,17 +28,17 @@ socketP.then((socket) => {
 	socket.addListener("update-game-rooms", (data: unknown) => {
 		const { updateRooms, removedRooms } = z
 			.object({
-				updateRooms: z.array(GameRoom),
-				removedRooms: z.array(z.string()),
+				updateRooms: z.array(GameRoom).optional(),
+				removedRooms: z.array(z.string()).optional(),
 			})
 			.parse(data);
 		rooms = [
 			...rooms.filter(
 				(room) =>
-					!updateRooms.some((r) => r.hostId === room.hostId) &&
-					!removedRooms.includes(room.hostId),
+					!updateRooms?.some((r) => r.hostId === room.hostId) &&
+					!removedRooms?.includes(room.hostId),
 			),
-			...updateRooms,
+			...(updateRooms ?? []),
 		];
 	});
 

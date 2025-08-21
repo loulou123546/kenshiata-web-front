@@ -27,6 +27,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"lefthook": "^1.11.13",
+		"vite-tsconfig-paths": "^5.1.4",
 		"yaml": "^2.8.0"
 	}
 }

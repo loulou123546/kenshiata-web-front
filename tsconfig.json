@@ -2,6 +2,7 @@
 	"extends": "astro/tsconfigs/strict",
 	"include": [".astro/types.d.ts", "**/*"],
 	"exclude": ["dist"],
+	"allowJs": true,
 	"compilerOptions": {
 		"paths": {
 			"@shared/*": ["./shared/*"]

@@ -2,6 +2,7 @@
 import { defineConfig } from "astro/config";
 
 import svelte from "@astrojs/svelte";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 import tailwindcss from "@tailwindcss/vite";
 
@@ -10,6 +11,6 @@ export default defineConfig({
 	integrations: [svelte()],
 
 	vite: {
-		plugins: [tailwindcss()],
+		plugins: [tailwindcss(), tsconfigPaths()],
 	},
 });
