@@ -9,7 +9,7 @@
 		"astro": "astro",
 		"prepare": "lefthook install || true",
 		"lint": "npx @biomejs/biome check --write .",
-		"doc": "cd docs && node main.mjs && npx asyncapi start studio asyncapi.yaml"
+		"doc": "cd shared/docs && node main.mjs && npx asyncapi start studio asyncapi.yaml"
 	},
 	"dependencies": {
 		"@astrojs/svelte": "^7.1.0",
