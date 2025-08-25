@@ -1,9 +1,11 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
 import { type User, getUserData, userManager } from "../services/auth.ts";
 
 const { whenLoginOK } = $props();
 
 async function login() {
+	faro.api.pushEvent("init new login");
 	await userManager.signinRedirect();
 }
 

@@ -24,6 +24,40 @@ import "../styles/global.css";
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+    <script>
+      import {
+        getWebInstrumentations,
+        initializeFaro,
+      } from "@grafana/faro-web-sdk";
+      import { TracingInstrumentation } from "@grafana/faro-web-tracing";
+
+      initializeFaro({
+        url: "https://faro-collector-prod-eu-central-0.grafana.net/collect/7af1bfb2d156ac36e8103b9162ec38aa",
+        app: {
+          name: "Kenshiata front web",
+          version: "1.0.0",
+          environment: import.meta.env.PUBLIC_ENV ?? "unknown",
+        },
+
+        instrumentations: [
+          // Mandatory, omits default instrumentations otherwise.
+          ...getWebInstrumentations(),
+
+          // Tracing package to get end-to-end visibility for HTTP requests.
+          new TracingInstrumentation({
+            instrumentationOptions: {
+              propagateTraceHeaderCorsUrls: [
+                /^http(s)?:\/\/localhost:\d+\/.*/i,
+                /^ws(s)?:\/\/localhost:\d+\/.*/i,
+                /^https:\/\/kenshiata\.(com|studio)\/.*/i,
+                /^https:\/\/.*\.kenshiata\.(com|studio)\/.*/i,
+                /^wss:\/\/ws\.kenshiata\.(com|studio)\/.*/i,
+              ],
+            },
+          }),
+        ],
+      });
+    </script>
   </head>
   <body>
     <slot />

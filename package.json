@@ -13,6 +13,8 @@
 	},
 	"dependencies": {
 		"@astrojs/svelte": "^7.1.0",
+		"@grafana/faro-web-sdk": "^1.19.0",
+		"@grafana/faro-web-tracing": "^1.19.0",
 		"@nanostores/persistent": "^1.0.0",
 		"@tailwindcss/vite": "^4.1.8",
 		"astro": "^5.8.1",
@@ -25,6 +27,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@grafana/faro-rollup-plugin": "^0.5.2",
 		"lefthook": "^1.11.13",
 		"typescript": "^5.8.3",
 		"vite-tsconfig-paths": "^5.1.4",

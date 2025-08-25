@@ -1,4 +1,5 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
 import type { Character } from "@shared/types/Character";
 import { listCharacters } from "../../models/characters";
 import SmallPlayerCard from "../SmallPlayerCard.svelte";
@@ -6,6 +7,12 @@ import EditForm from "./EditForm.svelte";
 
 // biome-ignore lint: username is modified on bind:value
 let loading: Promise<Character[]> = $state(listCharacters());
+
+$effect(() => {
+	loading.catch((err) => {
+		faro.api.pushError(err);
+	});
+});
 // biome-ignore lint: username is modified on bind:value
 let editing: Character | {} | undefined = $state(undefined);
 // biome-ignore lint: username is modified on bind:value
@@ -23,6 +30,9 @@ let selected: Character | undefined = $state(undefined);
             onclose={() => {
                 loading = listCharacters();
                 editing = undefined;
+                loading.catch((err) => {
+                    faro.api.pushError(err);
+                });
             }}
         />
     {:else}

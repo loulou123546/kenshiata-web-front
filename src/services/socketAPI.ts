@@ -1,3 +1,4 @@
+import { faro } from "@grafana/faro-web-sdk";
 import { getUserData } from "./auth";
 
 type Logger = (...data: unknown[]) => void;
@@ -28,6 +29,11 @@ export default class SocketAPI {
 					callback(data);
 				}
 			}
+		});
+		this.socket.addEventListener("error", (event: Event) => {
+			faro.api.pushError(
+				new Error(`WebSocket error: ${JSON.stringify(event)}`),
+			);
 		});
 	}
 

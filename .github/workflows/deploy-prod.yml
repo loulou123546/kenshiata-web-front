@@ -45,6 +45,10 @@ jobs:
           PUBLIC_FRONT_DOMAIN: "https://kenshiata.studio"
           PUBLIC_API_DOMAIN: "https://api.kenshiata.studio"
           PUBLIC_WEBSOKET: "wss://ws.kenshiata.studio"
+          PUBLIC_ENV: "prod"
+          FARO_APP_ID: "82"
+          FARO_STACK_ID: "1355729"
+          FARO_API_KEY: ${{ secrets.FARO_API_KEY }}
 
       - name: Upload website files
         uses: actions/upload-artifact@v4.4.0
