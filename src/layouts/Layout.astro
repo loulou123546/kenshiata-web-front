@@ -53,6 +53,30 @@ import "../styles/global.css";
                 /^https:\/\/.*\.kenshiata\.(com|studio)\/.*/i,
                 /^wss:\/\/ws\.kenshiata\.(com|studio)\/.*/i,
               ],
+              fetchInstrumentationOptions: {
+                applyCustomAttributesOnSpan: (span, request) => {
+                  try {
+                    if (span?.attributes?.["http.url"] === undefined) return;
+                    const method = span?.attributes?.["http.method"] || "HTTP";
+                    const url = new URL(span?.attributes?.["http.url"]);
+                    span.updateName(`${method} ${url.pathname}`);
+                  } catch (err) {
+                    console.error(err);
+                  }
+                },
+              },
+              xhrInstrumentationOptions: {
+                applyCustomAttributesOnSpan: (span, xhr) => {
+                  try {
+                    if (span?.attributes?.["http.url"] === undefined) return;
+                    const method = span?.attributes?.["http.method"] || "HTTP";
+                    const url = new URL(span?.attributes?.["http.url"]);
+                    span.updateName(`${method} ${url.pathname}`);
+                  } catch (err) {
+                    console.error(err);
+                  }
+                },
+              },
             },
           }),
         ],
