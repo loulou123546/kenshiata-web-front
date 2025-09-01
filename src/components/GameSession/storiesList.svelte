@@ -1,9 +1,11 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
 import type { GamePlayer } from "@shared/types/GamePlayer";
 import type { GameSession } from "@shared/types/GameSession";
 import type { GameStory } from "@shared/types/GameStory";
 import { z } from "zod";
 import { getGameStories } from "../../models/gameStory";
+
 const { gameSession } = $props<{
 	gameSession: GameSession;
 }>();
@@ -16,7 +18,10 @@ getGameStories()
 	.then((data) => {
 		stories = data;
 	})
-	.catch((err) => alert(err));
+	.catch((err) => {
+		faro.api.pushError(err);
+		alert(err);
+	});
 
 function saveVote(storyId: string, user: GamePlayer) {
 	// remove previous votes
