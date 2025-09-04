@@ -1,3 +1,4 @@
+import { faro } from "@grafana/faro-web-sdk";
 import type { GamePlayer } from "@shared/types/GamePlayer";
 import {
 	type GameSessionData,
@@ -21,6 +22,11 @@ export class GameSession {
 		this.myUserId = myUserId;
 		this.name = info.name;
 		this.data = info.data || {};
+		faro.api.pushEvent("game session instanciated", {
+			sessionId: this.sessionId,
+			name: this.name,
+			playerCount: String(this.playerCount),
+		});
 	}
 
 	public get playerCount() {

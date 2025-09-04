@@ -29,6 +29,7 @@ import Layout from "../layouts/Layout.astro";
     </div>
   </main>
   <script>
+    import { faro } from "@grafana/faro-web-sdk";
     import { userManager, getUserData } from "../services/auth.ts";
 
     getUserData().then((user) => {
@@ -40,6 +41,7 @@ import Layout from "../layouts/Layout.astro";
     });
 
     document.getElementById("login")?.addEventListener("click", async () => {
+      faro.api.pushEvent("init new login");
       await userManager.signinRedirect();
     });
   </script>

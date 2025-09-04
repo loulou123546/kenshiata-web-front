@@ -1,4 +1,5 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
 import type { Character } from "@shared/types/Character";
 import { GamePlayer } from "@shared/types/GamePlayer";
 import { z } from "zod";
@@ -22,7 +23,10 @@ getStoryMetadata(storyId)
 	.then((data) => {
 		roles = data.roles;
 	})
-	.catch((err) => alert(err));
+	.catch((err) => {
+		faro.api.pushError(err);
+		alert(err);
+	});
 
 function selectedRole(tag: string, user: GamePlayer) {
 	// remove previous votes
