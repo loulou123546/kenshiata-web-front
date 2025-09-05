@@ -2,7 +2,7 @@
 import { faro } from "@grafana/faro-web-sdk";
 import type { GamePlayer } from "@shared/types/GamePlayer";
 import type { GameSession } from "@shared/types/GameSession";
-import type { GameStory } from "@shared/types/GameStory";
+import type { Stories } from "@shared/types/Story";
 import { z } from "zod";
 import { getGameStories } from "../../models/gameStory";
 
@@ -10,7 +10,7 @@ const { gameSession } = $props<{
 	gameSession: GameSession;
 }>();
 
-let stories: GameStory[] = $state([]);
+let stories: Stories = $state([]);
 const votes: Record<string, GamePlayer[]> = $state({});
 let myvote: string = $state("");
 
