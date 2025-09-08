@@ -1,8 +1,10 @@
 <script lang="ts">
 import { faro } from "@grafana/faro-web-sdk";
 import type { Stories, Story } from "@shared/types/Story";
-import throttle from "lodash/throttle";
+import debounce from "lodash/debounce";
 import InkEditor from "../../../components/InkEditor.svelte";
+import InkGraph from "../../../components/InkGraph.svelte";
+import InkPlayer from "../../../components/InkPlayer.svelte";
 import {
 	createStory,
 	editStory,
@@ -53,7 +55,7 @@ function selectStory(id: string) {
 		});
 }
 
-const saveStory = throttle(
+const saveStory = debounce(
 	() => {
 		const saved_at = Date.now();
 		if (!selected_story) return;
@@ -63,7 +65,7 @@ const saveStory = throttle(
 			})
 			.catch((err) => faro.api.pushError(err));
 	},
-	1500,
+	3500,
 	{ trailing: true },
 );
 
@@ -98,11 +100,15 @@ function handleInkChange(value: string) {
 		<i class="fa-solid fa-rotate text-gray-700 fa-spin"></i>
 		{/if}
 	</h3>
-    <InkEditor 
-        value={inkContent} 
-        onchange={handleInkChange} 
-        class="h-[50vh] w-full" 
-    />
+	<div class="w-full flex flex-row flex-wrap">
+		<InkEditor 
+			value={inkContent} 
+			onchange={handleInkChange} 
+			class="h-[50vh] w-1/2" 
+		/>
+		<InkPlayer value={inkContent} class="w-1/2" />
+	</div>
+		<InkGraph value={inkContent} class="w-full" />
 </section>
 {/if}
 </main>

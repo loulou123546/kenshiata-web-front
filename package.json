@@ -27,6 +27,7 @@
 		"codemirror": "^6.0.2",
 		"inkjs": "^2.3.2",
 		"lodash": "^4.17.21",
+		"mermaid": "^11.11.0",
 		"nanostores": "^1.0.1",
 		"oidc-client-ts": "^3.3.0",
 		"svelte": "^5.33.11",
@@ -36,6 +37,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@grafana/faro-rollup-plugin": "^0.5.2",
+		"@types/lodash": "^4.17.20",
 		"lefthook": "^1.11.13",
 		"typescript": "^5.8.3",
 		"vite-tsconfig-paths": "^5.1.4",
