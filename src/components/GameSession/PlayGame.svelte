@@ -1,13 +1,14 @@
 <script lang="ts">
 import type { GamePlayer } from "@shared/types/GamePlayer";
 import {
+	type Storychoice,
 	type StoryLine,
 	StorySituation,
-	type Storychoice,
 } from "@shared/types/InkStory";
+import { parse } from "svelte/compiler";
 import { z } from "zod";
-import type { GameSession } from "../../models/GameSession";
 import { getAvatarSource } from "../../models/characters";
+import type { GameSession } from "../../models/GameSession";
 
 const { gameSession }: { gameSession: GameSession } = $props<{
 	gameSession: GameSession;
@@ -30,6 +31,21 @@ gameSession.addListener("game-continue", (raw: unknown) => {
 	votes = [];
 	for (let i = 0; i < choices.length; i++) {
 		votes[i] = [];
+	}
+});
+
+gameSession.addListener("game-choice", (raw: unknown) => {
+	const data = z
+		.object({ userId: z.string(), choiceIndex: z.number() })
+		.parse(raw);
+	const player = gameSession.getPlayer(data.userId);
+	if (player) {
+		resetPlayerVote(player.userId);
+		votes[data.choiceIndex].push(player);
+	} else {
+		console.error(
+			`Received vote from player id ${data.userId} but cannot find player in gameSession`,
+		);
 	}
 });
 
