@@ -5,7 +5,6 @@ import {
 	type StoryLine,
 	StorySituation,
 } from "@shared/types/InkStory";
-import { parse } from "svelte/compiler";
 import { z } from "zod";
 import { getAvatarSource } from "../../models/characters";
 import type { GameSession } from "../../models/GameSession";
