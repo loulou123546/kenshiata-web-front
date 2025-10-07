@@ -1,6 +1,6 @@
 import { faro } from "@grafana/faro-web-sdk";
-import { GameStory, GameStoryMetadata } from "@shared/types/GameStory";
-import { z } from "zod";
+import { GameStoryMetadata } from "@shared/types/GameStory";
+import { Stories } from "@shared/types/Story";
 // import { persistentAtom } from '@nanostores/persistent';
 import { getUserData } from "../services/auth";
 
@@ -9,7 +9,7 @@ import { getUserData } from "../services/auth";
 //   decode: JSON.parse,
 // })
 
-export async function getGameStories(): Promise<GameStory[]> {
+export async function getGameStories(): Promise<Stories> {
 	try {
 		const user = await getUserData();
 		const response = await fetch(
@@ -27,7 +27,7 @@ export async function getGameStories(): Promise<GameStory[]> {
 			throw new Error(`Failed to fetch stories: ${response.statusText}`);
 		}
 		const data = await response.json();
-		return z.array(GameStory).parse(data?.data);
+		return Stories.parse(data?.data);
 	} catch (err) {
 		faro.api.pushError(err as Error);
 		throw err;
@@ -38,7 +38,7 @@ export async function getStoryMetadata(id: string): Promise<GameStoryMetadata> {
 	try {
 		const user = await getUserData();
 		const response = await fetch(
-			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/${encodeURIComponent(id)}`,
+			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/metadata/${encodeURIComponent(id)}`,
 			{
 				method: "GET",
 				headers: {
