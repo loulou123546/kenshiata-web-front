@@ -22,6 +22,12 @@ function resetPlayerVote(userId: string) {
 		players.filter((player) => player.userId !== userId),
 	);
 }
+function setPlayerVote(player: GamePlayer, index: number) {
+	votes = votes.map((players, ind) => {
+		if (ind === index) return [...players, player];
+		else return players;
+	});
+}
 
 gameSession.addListener("game-continue", (raw: unknown) => {
 	const data = z.object({ ink_data: StorySituation }).parse(raw).ink_data;
@@ -34,25 +40,32 @@ gameSession.addListener("game-continue", (raw: unknown) => {
 });
 
 gameSession.addListener("game-choice", (raw: unknown) => {
-	const data = z
-		.object({ userId: z.string(), choiceIndex: z.number() })
-		.parse(raw);
-	const player = gameSession.getPlayer(data.userId);
-	if (player) {
-		resetPlayerVote(player.userId);
-		votes[data.choiceIndex].push(player);
-	} else {
-		console.error(
-			`Received vote from player id ${data.userId} but cannot find player in gameSession`,
-		);
+	console.log("received game-choice with", raw);
+	console.log(gameSession.players);
+	try {
+		const data = z
+			.object({ userId: z.string(), choiceIndex: z.number() })
+			.parse(raw);
+		const player = gameSession.getPlayer(data.userId);
+		if (player) {
+			resetPlayerVote(player.userId);
+			setPlayerVote(player, data.choiceIndex);
+		} else {
+			console.error(
+				`Received vote from player id ${data.userId} but cannot find player in gameSession`,
+			);
+		}
+	} catch (err) {
+		console.error(err);
 	}
+	console.log(votes);
 });
 
 function voteForChoice(index: number) {
 	const me = gameSession.getMyPlayer();
 	if (me === undefined) return;
 	resetPlayerVote(me.userId);
-	votes[index].push(me);
+	setPlayerVote(me, index);
 
 	gameSession.sendServer("game-choice", {
 		choiceIndex: index,
