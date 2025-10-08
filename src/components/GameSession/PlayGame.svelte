@@ -77,9 +77,9 @@ function voteForChoice(index: number) {
     {#each texts as text}
         <p class="mb-2">
             {text.text}
-            <i class="opacity-60">
+            <!-- <i class="opacity-60">
                 {text.tags.map((el) => `#${el}`).join(" ")}
-            </i>
+            </i> -->
         </p>
     {/each}
 
