@@ -3,8 +3,8 @@ import { faro } from "@grafana/faro-web-sdk";
 import type { Character } from "@shared/types/Character";
 import { GamePlayer } from "@shared/types/GamePlayer";
 import { z } from "zod";
-import type { GameSession } from "../../models/GameSession";
 import { characters } from "../../models/characters";
+import type { GameSession } from "../../models/GameSession";
 import { getStoryMetadata } from "../../models/gameStory";
 import SmallPlayerCard from "../SmallPlayerCard.svelte";
 
@@ -14,6 +14,7 @@ const { gameSession, storyId } = $props<{
 }>();
 
 let roles: { tag: string; name: string }[] = $state([]);
+let gamemode: string | undefined = $state(undefined);
 const assignedPlayer: Record<string, GamePlayer> = $state({});
 let myRole: string = $state("");
 let selectedCharacter: Character | undefined = $state(undefined);
@@ -21,7 +22,11 @@ let readyToPlay: boolean = $state(false);
 
 getStoryMetadata(storyId)
 	.then((data) => {
+		gamemode = data.gamemode;
 		roles = data.roles;
+		if (gamemode === "no-roles") {
+			myRole = gameSession.myUserId;
+		}
 	})
 	.catch((err) => {
 		faro.api.pushError(err);
@@ -42,14 +47,17 @@ function selectedRole(tag: string, user: GamePlayer) {
 
 gameSession.addListener("player-ready", (data: unknown) => {
 	const newData = z
-		.object({ player: GamePlayer, role: z.object({ tag: z.string() }) })
+		.object({
+			player: GamePlayer,
+			role: z.object({ tag: z.string() }),
+		})
 		.parse(data);
 	gameSession.setPlayer(newData.player);
 	selectedRole(newData.role.tag, newData.player);
 });
 
-gameSession.addListener("reject-player-ready", (data: unknown) => {
-	myRole = "";
+gameSession.addListener("reject-player-ready", (_data: unknown) => {
+	myRole = gamemode === "no-roles" ? gameSession.myUserId : "";
 	readyToPlay = false;
 });
 
@@ -67,24 +75,26 @@ function select_character(char: Character) {
 </script>
 
 {#if !readyToPlay}
-    <h2 class="text-2xl font-semibold pl-12 py-4">Rôles disponibles</h2>
+    {#if gamemode !== "no-roles"}
+        <h2 class="text-2xl font-semibold pl-12 py-4">Rôles disponibles</h2>
 
-    <div class="flex flex-wrap flex-row gap-4">
-        {#each roles as role}
-            <SmallPlayerCard
-                customClass={myRole === role.tag
-                    ? "bg-gray-200 text-black border-4 border-blue-500"
-                    : "bg-gray-200 text-black hover:bg-gray-400"}
-                user={{
-                    avatar: assignedPlayer?.[role.tag]?.data?.avatar ?? "add.png",
-                    name: assignedPlayer?.[role.tag]
-                        ? `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`
-                        : role.name,
-                }}
-                onclick={() => (myRole = role.tag)}
-            />
-        {/each}
-    </div>
+        <div class="flex flex-wrap flex-row gap-4">
+            {#each roles as role}
+                <SmallPlayerCard
+                    customClass={myRole === role.tag
+                        ? "bg-gray-200 text-black border-4 border-blue-500"
+                        : "bg-gray-200 text-black hover:bg-gray-400"}
+                    user={{
+                        avatar: assignedPlayer?.[role.tag]?.data?.avatar ?? "add.png",
+                        name: assignedPlayer?.[role.tag]
+                            ? `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`
+                            : role.name,
+                    }}
+                    onclick={() => (myRole = role.tag)}
+                />
+            {/each}
+        </div>
+    {/if}
 
     <h2 class="text-2xl font-semibold pl-12 py-4">
         Jouer avec le personnage de
@@ -117,32 +127,61 @@ function select_character(char: Character) {
         En attente des autres joueurs
     </h2>
 
-    <div class="flex flex-wrap flex-row gap-4">
-        {#each roles as role}
-            {#if assignedPlayer?.[role.tag]}
-                <SmallPlayerCard
-                    customClass={assignedPlayer[role.tag].userId ===
-                    gameSession.myUserId
-                        ? "bg-gray-200 text-black border-4 border-blue-500"
-                        : "bg-gray-200 text-black hover:bg-gray-400"}
-                    user={{
-                        avatar: assignedPlayer[role.tag]?.data?.avatar ?? "add.png",
-                        name: `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`,
-                    }}
-                    onclick={() => {}}
-                />
-            {:else}
-                <SmallPlayerCard
-                    customClass="bg-gray-200 text-black hover:bg-gray-400"
-                    user={{
-                        avatar: "add.png",
-                        name: role.name,
-                    }}
-                    onclick={() => {}}
-                />
-            {/if}
-        {/each}
-    </div>
+    {#if gamemode !== "no-roles"}
+        <div class="flex flex-wrap flex-row gap-4">
+            {#each roles as role}
+                {#if assignedPlayer?.[role.tag]}
+                    <SmallPlayerCard
+                        customClass={assignedPlayer[role.tag].userId ===
+                        gameSession.myUserId
+                            ? "bg-gray-200 text-black border-4 border-blue-500"
+                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                        user={{
+                            avatar: assignedPlayer[role.tag]?.data?.avatar ?? "add.png",
+                            name: `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`,
+                        }}
+                        onclick={() => {}}
+                    />
+                {:else}
+                    <SmallPlayerCard
+                        customClass="bg-gray-200 text-black hover:bg-gray-400"
+                        user={{
+                            avatar: "add.png",
+                            name: role.name,
+                        }}
+                        onclick={() => {}}
+                    />
+                {/if}
+            {/each}
+        </div>
+    {:else}
+        <div class="flex flex-wrap flex-row gap-4">
+            {#each gameSession.players as player}
+                {#if assignedPlayer?.[player.userId]}
+                    <SmallPlayerCard
+                        customClass={player.userId ===
+                        gameSession.myUserId
+                            ? "bg-gray-200 text-black border-4 border-blue-500"
+                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                        user={{
+                            avatar: assignedPlayer?.[player.userId]?.data?.avatar ?? "add.png",
+                            name: `${assignedPlayer?.[player.userId].username} is ${assignedPlayer?.[player.userId]?.data?.character_name}`,
+                        }}
+                        onclick={() => {}}
+                    />
+                {:else}
+                    <SmallPlayerCard
+                        customClass="bg-gray-200 text-black hover:bg-gray-400"
+                        user={{
+                            avatar: "add.png",
+                            name: player.username,
+                        }}
+                        onclick={() => {}}
+                    />
+                {/if}
+            {/each}
+        </div>
+    {/if}
 
     <div class="w-full text-center p-0 sm:p-8">
         <button
