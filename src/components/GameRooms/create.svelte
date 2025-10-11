@@ -6,7 +6,7 @@ const { socket } = $props<{
 }>();
 
 let roomName: string = $state("");
-let roomType: "private" | "public" = $state("private");
+let roomType: "private" | "public" = $state("public");
 
 function createGame() {
 	if (roomName.trim().length < 3 || roomName.trim().length > 256) {
@@ -19,7 +19,7 @@ function createGame() {
 		is_public: roomType === "public",
 	});
 	roomName = "";
-	roomType = "private";
+	roomType = "public";
 }
 </script>
 
@@ -44,8 +44,7 @@ function createGame() {
             maxlength="256"
         />
     </div>
-    <div class="mb-4">
-        <!-- public or private -->
+    <!-- <div class="mb-4">
         <label
             class="block text-sm font-medium text-gray-300 mb-2"
             for="roomType"
@@ -62,7 +61,7 @@ function createGame() {
             <option value="public">Publique</option>
             <option value="private" selected>Privée</option>
         </select>
-    </div>
+    </div> -->
     <button
         class="px-4 py-2 rounded-lg bg-blue-600 text-white w-full text-center hover:bg-blue-700"
         onclick={createGame}

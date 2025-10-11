@@ -1,8 +1,8 @@
 <script lang="ts">
 import { EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView, basicSetup } from "codemirror";
-import { ink } from "./inkLang.js";
+import { basicSetup, EditorView } from "codemirror";
+import { ink } from "../inkLang.js";
 
 interface Props {
 	value?: string;

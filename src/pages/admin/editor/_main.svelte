@@ -2,9 +2,9 @@
 import { faro } from "@grafana/faro-web-sdk";
 import type { Stories, Story } from "@shared/types/Story";
 import debounce from "lodash/debounce";
-import InkEditor from "../../../components/InkEditor.svelte";
+import InkEditor from "../../../components/AdminEditor/InkEditor.svelte";
 // import InkGraph from "../../../components/InkGraph.svelte";
-import InkPlayer from "../../../components/InkPlayer.svelte";
+import InkPlayer from "../../../components/AdminEditor/InkPlayer.svelte";
 import LoginWall from "../../../components/LoginWall.svelte";
 import {
 	createStory,
