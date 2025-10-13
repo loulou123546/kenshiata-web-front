@@ -1,6 +1,6 @@
 <script lang="ts">
 import { faro } from "@grafana/faro-web-sdk";
-import { type User, getUserData, userManager } from "../services/auth.ts";
+import { getUserData, type User, userManager } from "../services/auth.ts";
 
 const { whenLoginOK } = $props();
 
@@ -16,7 +16,7 @@ loading.then((user) => {
 });
 </script>
 
-<main class="w-full h-full flex items-center justify-center p-16">
+<main class="w-full h-full flex items-center justify-center md:p-16">
     {#await loading}
         <button
             disabled
@@ -43,11 +43,12 @@ loading.then((user) => {
             Chargement de votre profil utilisateur...
         </button>
     {:catch error}
-        <button
+        <!-- <button
             class="p-4 text-xl bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
             onclick={login}
         >
             Login to your account
-        </button>
+        </button> -->
+        <LoginSignup/>
     {/await}
 </main>

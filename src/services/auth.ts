@@ -1,78 +1,111 @@
 import { persistentMap } from "@nanostores/persistent";
-import type { MapStore } from "nanostores";
-import { UserManager } from "oidc-client-ts";
+import { RefreshTokenResponse } from "@shared/types/Auth";
 import { z } from "zod";
+
+type AuthTokens = {
+	access_token?: string;
+	id_token?: string;
+	refresh_token?: string;
+};
 
 export const User = z.object({
 	id: z.string(),
 	email: z.string().email(),
 	username: z.string(),
-	token: z.string(),
 });
 export type User = z.infer<typeof User>;
 
-class NanoStoreAsStoreManager {
-	private mapStore: MapStore<Record<string, string | undefined>>;
-	constructor(main_key: string) {
-		this.mapStore = persistentMap<Record<string, string | undefined>>(
-			main_key,
-			{},
-		);
-	}
-	async get(key: string): Promise<null | string> {
-		return this.mapStore.get()?.[key] ?? null;
-	}
-	async getAllKeys(): Promise<string[]> {
-		return Object.keys(this.mapStore.get() ?? {});
-	}
-	async remove(key: string): Promise<null | string> {
-		const previous = this.mapStore.get()?.[key] ?? null;
-		this.mapStore.setKey(key, undefined);
-		return previous;
-	}
-	async set(key: string, value: string): Promise<void> {
-		this.mapStore.setKey(key, value);
-	}
-}
-
-const cognitoAuthConfig = {
-	authority: "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Fzpf4i9XY",
-	client_id: "203t0a306t5vkid4kdeto2hs2i",
-	redirect_uri: `${import.meta.env.PUBLIC_FRONT_DOMAIN}/user/login`,
-	response_type: "code",
-	scope: "email openid phone profile",
-	// no revoke of "access token" (https://github.com/authts/oidc-client-ts/issues/262)
-	revokeTokenTypes: ["refresh_token" as const],
-	// no silent renew via "prompt=none" (https://github.com/authts/oidc-client-ts/issues/366)
-	automaticSilentRenew: false,
-	userStore: new NanoStoreAsStoreManager("oidc:cognito:user:"),
-	stateStore: new NanoStoreAsStoreManager("oidc:cognito:state:"),
-};
-
-// create a UserManager instance
-export const userManager = new UserManager({
-	...cognitoAuthConfig,
+const authTokens = persistentMap<AuthTokens>("auth-tokens:", {
+	access_token: undefined,
+	id_token: undefined,
+	refresh_token: undefined,
 });
 
-export async function signOutRedirect() {
-	const clientId = "203t0a306t5vkid4kdeto2hs2i";
-	const logoutUri = "<logout uri>";
-	const cognitoDomain =
-		"https://eu-west-1fzpf4i9xy.auth.eu-west-1.amazoncognito.com";
-	window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+const currentUser = persistentMap<User>("auth-user:");
+
+function unsafe_parse_token(token: string): {
+	header: Record<string, unknown>;
+	payload: Record<string, unknown>;
+} {
+	const parts = token.split(".");
+	return {
+		header: JSON.parse(atob(parts[0])),
+		payload: JSON.parse(atob(parts[1])),
+	};
 }
 
-export async function getUserData(): Promise<User | undefined> {
-	const user = await userManager.getUser();
-	if (!user) throw new Error("User is not authenticated");
-	if (user.expires_at && user.expires_at < Date.now() / 1000) {
-		await userManager.signinSilent();
-		return await getUserData();
+export function receiveTokens(tokens: AuthTokens): void {
+	if (tokens.access_token)
+		authTokens.setKey("access_token", tokens.access_token);
+	if (tokens.id_token) authTokens.setKey("id_token", tokens.id_token);
+	if (tokens.refresh_token)
+		authTokens.setKey("refresh_token", tokens.refresh_token);
+}
+
+async function refreshTokens() {
+	const token = authTokens.get()?.refresh_token;
+	if (!token) return;
+	try {
+		const res = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/auth/refresh`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					refresh_token: token,
+				}),
+			},
+		);
+		const data = RefreshTokenResponse.parse(await res.json());
+		if (data?.success) receiveTokens(data.success);
+		if (data?.error) throw new Error(data.error);
+	} catch (err) {
+		console.error(err);
 	}
-	return User.parse({
-		id: user.profile.sub,
-		email: user.profile.email,
-		username: user.profile?.["cognito:username"],
-		token: user.access_token,
-	});
+}
+
+function shouldRefreshToken() {
+	const tokens = authTokens.get();
+	if (!tokens?.access_token || !tokens?.id_token) return true;
+	const id_payload = tokens?.id_token
+		? unsafe_parse_token(tokens?.id_token)
+		: undefined;
+	const at_payload = tokens?.access_token
+		? unsafe_parse_token(tokens?.access_token)
+		: undefined;
+	const expires_at = new Date(
+		((id_payload?.payload?.exp ?? at_payload?.payload?.exp ?? 0) as number) *
+			1000,
+	);
+	if (expires_at.getTime() < Date.now() + 1000 * 60 * 5) return true; // one of the token expires in less than 5 minutes
+}
+
+setTimeout(() => {
+	if (shouldRefreshToken()) refreshTokens().catch(console.error);
+}, 10);
+
+// every minute
+setInterval(() => {
+	if (shouldRefreshToken()) refreshTokens().catch(console.error);
+}, 60000);
+
+export async function get_access_token(): Promise<string> {
+	if (shouldRefreshToken()) await refreshTokens();
+	const tokens = authTokens.get();
+	if (!tokens?.access_token) throw new Error("User is not authenticated");
+	return tokens.access_token;
+}
+
+export async function get_id(): Promise<User> {
+	if (shouldRefreshToken()) await refreshTokens();
+	const tokens = authTokens.get();
+	if (!tokens?.id_token) throw new Error("User is not authenticated");
+	const id = unsafe_parse_token(tokens.id_token);
+	return {
+		id: id.payload?.sub,
+		username: id.payload?.["cognito:username"],
+		email: id.payload.email_verified ? id.payload?.email : undefined,
+	} as User;
 }

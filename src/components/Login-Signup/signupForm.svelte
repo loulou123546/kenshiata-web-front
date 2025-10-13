@@ -1,0 +1,176 @@
+
+<script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
+import { LoginResponse, SignupResponse } from "@shared/types/Auth";
+import { receiveTokens } from "../../services/auth";
+import Turnstile from "../Turnstile.svelte";
+
+let step: "create" | "confirm" = $state("create");
+
+// biome-ignore lint/style/useConst: <explanation>
+let username: string = $state("");
+// biome-ignore lint/style/useConst: <explanation>
+let password: string = $state("");
+// biome-ignore lint/style/useConst: <explanation>
+let email: string = $state("");
+let turnstile_token: string = $state("");
+
+let confirm_via: string = $state("");
+let confirm_to: string = $state("");
+// biome-ignore lint/style/useConst: <explanation>
+let confirm_code: string = $state("");
+let session: string = $state("");
+
+function successTurnstile(token: string) {
+	turnstile_token = token;
+}
+
+async function InitSignUp() {
+	try {
+		const res = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/auth/signup`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify({
+					username,
+					password,
+					email,
+					turnstileToken: turnstile_token,
+				}),
+			},
+		);
+		const data = SignupResponse.parse(await res.json());
+		if (data?.success)
+			receiveTokens(data.success); // never happen in normal conditions
+		else if (data?.continue?.code_sent) {
+			confirm_to = data.continue?.code_sent_to;
+			confirm_via = data.continue?.code_sent_via;
+			session = data.continue?.session_id;
+			step = "confirm";
+		} else if (data?.error) console.error(data.error);
+		else console.log(data);
+	} catch (err) {
+		console.error(err);
+	}
+}
+
+async function ConfirmSignUp() {
+	try {
+		const res = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/auth/signup-confirm`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify({
+					username,
+					code: confirm_code,
+					session_id: session,
+				}),
+			},
+		);
+		const data = LoginResponse.parse(await res.json());
+		if (data?.success) receiveTokens(data.success);
+		else if (data?.error) console.error(data.error);
+		else console.log(data);
+	} catch (err) {
+		console.error(err);
+	}
+}
+</script>
+
+<div>
+    {#if step === "create"}
+        <div class="mb-4">
+            <label
+                for="username"
+                class="block text-sm font-medium font-semibold text-gray-800 mb-2"
+                >Nom d'utilisateur</label
+            >
+            <input
+                id="username"
+                type="text"
+                class="w-full p-2 rounded-lg bg-gray-100 text-black"
+                placeholder="Choisissez un nom de joueur"
+                bind:value={username}
+                required
+                autocomplete="username"
+            />
+            <p class="mt-1 text-gray-600 text-sm">Ce nom sera utilisé pour vous identifier de manière unique.
+                Vous pourrez ensuite créer autant de personnages jouable que vous le souhaitez.</p>
+        </div>
+        <div class="mb-4">
+            <label
+                for="email"
+                class="block text-sm font-medium font-semibold text-gray-800 mb-2"
+                >Adresse email</label
+            >
+            <input
+                id="email"
+                type="email"
+                class="w-full p-2 rounded-lg bg-gray-100 text-black"
+                placeholder="Entrer votre adresse email"
+                bind:value={email}
+                required
+                autocomplete="email"
+            />
+            <p class="mt-1 text-gray-600 text-sm">Un code de validation sera envoyé sur cette adresse email afin de valider votre compte.</p>
+        </div>
+        <div class="mb-4">
+            <label
+                for="password"
+                class="block text-sm font-medium font-semibold text-gray-800 mb-2"
+                >Créer un mot de passe</label
+            >
+            <input
+                id="password"
+                type="password"
+                class="w-full p-2 rounded-lg bg-gray-100 text-black"
+                placeholder="Entrez un mot de passe"
+                bind:value={password}
+                required
+                autocomplete="new-password"
+            />
+            <p class="mt-1 text-gray-600 text-sm">Au minimum 8 caractères. Doit inclure au moins une majuscule, une minuscule, un chiffre et un caractère spécial.</p>
+        </div>
+        <Turnstile action="signup" onSuccess={successTurnstile} onError={console.error}></Turnstile>
+        <div class="w-full text-center mt-2">
+            <button class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg" onclick={InitSignUp}>Inscription</button>
+        </div>
+    {:else}
+        <div class="mb-4">
+            <label
+                for="confirmCode"
+                class="block text-sm font-medium font-semibold text-gray-800 mb-2"
+                >Code de validation</label
+            >
+            <input
+                id="confirmCode"
+                type="text"
+                class="w-full p-2 rounded-lg bg-gray-100 text-black"
+                placeholder="******"
+                bind:value={confirm_code}
+                required
+                autocomplete="one-time-code"
+            />
+            {#if confirm_via.toLowerCase() === "phone"}
+                <p class="mt-1 text-gray-600 text-sm">Veuillez copier le code reçu par téléphone au numéro {confirm_to}.</p>
+            {:else if confirm_via.toLowerCase() === "email"}
+                <p class="mt-1 text-gray-600 text-sm">Veuillez copier le code reçu sur l'adresse email {confirm_to}.</p>
+            {:else}
+                <p class="mt-1 text-gray-600 text-sm">Un code vous à était envoyé ({confirm_to}), veuillez le copier ici afin de valider la création de votre compte.</p>
+            {/if}
+        </div>
+        <div class="w-full text-center mt-2">
+            <button class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg" onclick={ConfirmSignUp}>Confirmer mon compte</button>
+        </div>
+    {/if}
+</div>
+
+
