@@ -26,6 +26,7 @@
 		"astro": "^5.8.1",
 		"codemirror": "^6.0.2",
 		"inkjs": "^2.3.2",
+		"jose": "^6.1.0",
 		"lodash": "^4.17.21",
 		"mermaid": "^11.11.0",
 		"nanostores": "^1.0.1",

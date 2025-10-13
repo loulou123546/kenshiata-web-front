@@ -8,8 +8,11 @@ import { receiveTokens } from "../../services/auth";
 let username: string = $state("");
 // biome-ignore lint/style/useConst: <explanation>
 let password: string = $state("");
+let pending_api: boolean = $state(false);
 
 async function InitAuth() {
+	if (pending_api) return;
+	pending_api = true;
 	try {
 		faro.api.pushEvent(`init new login request for ${username}`);
 		const res = await fetch(`${import.meta.env.PUBLIC_API_DOMAIN}/auth/login`, {
@@ -24,7 +27,7 @@ async function InitAuth() {
 			}),
 		});
 		const data = LoginResponse.parse(await res.json());
-		if (data?.success) receiveTokens(data.success);
+		if (data?.success) await receiveTokens(data.success);
 		else if (data?.error) console.error(data.error);
 		else {
 			console.log(data);
@@ -32,6 +35,7 @@ async function InitAuth() {
 	} catch (err) {
 		console.error(err);
 	}
+	pending_api = false;
 }
 </script>
 
@@ -68,7 +72,12 @@ async function InitAuth() {
             autocomplete="current-password"
         />
     </div>
-    <div class="w-full text-center">
-        <button class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg" onclick={InitAuth}>Connexion</button>
+    <div class="w-full text-center text-white">
+        <button class={["font-semibold px-4 py-2 rounded-lg", pending_api ? 'bg-blue-700' : 'bg-blue-500 hover:bg-blue-800']} onclick={InitAuth}>
+            Connexion
+            {#if pending_api}
+                <i class="fa fa-spin fa-circle-notch ml-2"></i>
+            {/if}
+        </button>
     </div>
 </div>

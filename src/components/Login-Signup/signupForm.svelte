@@ -20,12 +20,15 @@ let confirm_to: string = $state("");
 // biome-ignore lint/style/useConst: <explanation>
 let confirm_code: string = $state("");
 let session: string = $state("");
+let pending_api: boolean = $state(false);
 
 function successTurnstile(token: string) {
 	turnstile_token = token;
 }
 
 async function InitSignUp() {
+	if (pending_api) return;
+	pending_api = true;
 	try {
 		const res = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/auth/signup`,
@@ -45,7 +48,7 @@ async function InitSignUp() {
 		);
 		const data = SignupResponse.parse(await res.json());
 		if (data?.success)
-			receiveTokens(data.success); // never happen in normal conditions
+			await receiveTokens(data.success); // never happen in normal conditions
 		else if (data?.continue?.code_sent) {
 			confirm_to = data.continue?.code_sent_to;
 			confirm_via = data.continue?.code_sent_via;
@@ -56,9 +59,12 @@ async function InitSignUp() {
 	} catch (err) {
 		console.error(err);
 	}
+	pending_api = false;
 }
 
 async function ConfirmSignUp() {
+	if (pending_api) return;
+	pending_api = true;
 	try {
 		const res = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/auth/signup-confirm`,
@@ -76,12 +82,13 @@ async function ConfirmSignUp() {
 			},
 		);
 		const data = LoginResponse.parse(await res.json());
-		if (data?.success) receiveTokens(data.success);
+		if (data?.success) await receiveTokens(data.success);
 		else if (data?.error) console.error(data.error);
 		else console.log(data);
 	} catch (err) {
 		console.error(err);
 	}
+	pending_api = false;
 }
 </script>
 
@@ -141,7 +148,12 @@ async function ConfirmSignUp() {
         </div>
         <Turnstile action="signup" onSuccess={successTurnstile} onError={console.error}></Turnstile>
         <div class="w-full text-center mt-2">
-            <button class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg" onclick={InitSignUp}>Inscription</button>
+            <button class={["font-semibold px-4 py-2 rounded-lg", pending_api ? 'bg-blue-700' : 'bg-blue-500 hover:bg-blue-800']} onclick={InitSignUp}>
+                Inscription
+                {#if pending_api}
+                    <i class="fa fa-spin fa-circle-notch ml-2"></i>
+                {/if}
+            </button>
         </div>
     {:else}
         <div class="mb-4">
@@ -168,9 +180,12 @@ async function ConfirmSignUp() {
             {/if}
         </div>
         <div class="w-full text-center mt-2">
-            <button class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg" onclick={ConfirmSignUp}>Confirmer mon compte</button>
+            <button class={["font-semibold px-4 py-2 rounded-lg", pending_api ? 'bg-blue-700' : 'bg-blue-500 hover:bg-blue-800']} onclick={ConfirmSignUp}>
+                Confirmer mon compte
+                {#if pending_api}
+                    <i class="fa fa-spin fa-circle-notch ml-2"></i>
+                {/if}
+            </button>
         </div>
     {/if}
 </div>
-
-
