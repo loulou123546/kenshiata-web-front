@@ -1,17 +1,16 @@
 import { faro } from "@grafana/faro-web-sdk";
 import { type EditStory, Stories, Story } from "@shared/types/Story";
-import { getUserData } from "../services/auth";
+import { get_access_token } from "../services/auth";
 
 export async function listStoriesByAuthor(author: string): Promise<Stories> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/by-author/${encodeURIComponent(author)}`,
 			{
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				mode: "cors",
 			},
@@ -31,14 +30,13 @@ export async function listStoriesByAuthor(author: string): Promise<Stories> {
 
 export async function getStory(id: string): Promise<Story> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/${encodeURIComponent(id)}`,
 			{
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				mode: "cors",
 			},
@@ -58,14 +56,13 @@ export async function getStory(id: string): Promise<Story> {
 
 export async function createStory(name: string): Promise<Story> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/stories`,
 			{
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				mode: "cors",
 				body: JSON.stringify({ name }),
@@ -86,14 +83,13 @@ export async function createStory(name: string): Promise<Story> {
 
 export async function editStory(story: EditStory): Promise<Story> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/${story.id}`,
 			{
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				mode: "cors",
 				body: JSON.stringify(story),

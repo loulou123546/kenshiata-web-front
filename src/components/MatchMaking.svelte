@@ -3,7 +3,7 @@ import { GameRoom } from "@shared/types/GameRoom";
 import { GameSession as GameSessionModel } from "@shared/types/GameSession";
 import { z } from "zod";
 import { GameSession } from "../models/GameSession";
-import { type User, getUserData } from "../services/auth";
+import { get_id, type User } from "../services/auth";
 import SocketAPI from "../services/socketAPI";
 import Create from "./GameRooms/create.svelte";
 import InRoom from "./GameRooms/inRoom.svelte";
@@ -16,11 +16,11 @@ const { onJoinSession } = $props<{
 const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
 let rooms: GameRoom[] = $state([]);
 let me: User | undefined = $state(undefined);
-getUserData().then((user) => {
+get_id().then((user) => {
 	me = user;
 });
 const currentRoom: GameRoom | undefined = $derived(
-	// @ts-ignore id can and will exist
+	// @ts-expect-error id can and will exist
 	(me?.id && rooms.find((room) => room.players.includes(me?.id))) || undefined,
 );
 

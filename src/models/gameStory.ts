@@ -2,7 +2,7 @@ import { faro } from "@grafana/faro-web-sdk";
 import { GameStoryMetadata } from "@shared/types/GameStory";
 import { Stories } from "@shared/types/Story";
 // import { persistentAtom } from '@nanostores/persistent';
-import { getUserData } from "../services/auth";
+import { get_access_token } from "../services/auth";
 
 // export const cacheUsernames = persistentAtom<Record<string, string>>('username-cache', {'__cache_age__': `${Date.now()/1000}`}, {
 //   encode: JSON.stringify,
@@ -11,14 +11,13 @@ import { getUserData } from "../services/auth";
 
 export async function getGameStories(): Promise<Stories> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/available`,
 			{
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				mode: "cors",
 			},
@@ -36,14 +35,13 @@ export async function getGameStories(): Promise<Stories> {
 
 export async function getStoryMetadata(id: string): Promise<GameStoryMetadata> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/metadata/${encodeURIComponent(id)}`,
 			{
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				mode: "cors",
 			},

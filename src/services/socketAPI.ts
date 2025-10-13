@@ -1,5 +1,5 @@
 import { faro } from "@grafana/faro-web-sdk";
-import { getUserData } from "./auth";
+import { get_access_token } from "./auth";
 
 type Logger = (...data: unknown[]) => void;
 
@@ -75,14 +75,14 @@ export default class SocketAPI {
 	}
 
 	public static async create(logger?: Logger): Promise<SocketAPI> {
-		const user = await getUserData();
-		if (!user || !user?.token) throw new Error("User is not authenticated");
+		const token = await get_access_token();
+		if (!token) throw new Error("User is not authenticated");
 		const res = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/open-socket`,
 			{
 				method: "POST",
 				headers: {
-					Authorization: `Bearer ${user.token}`,
+					Authorization: `Bearer ${token}`,
 				},
 				mode: "cors",
 			},

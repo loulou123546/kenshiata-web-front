@@ -19,30 +19,17 @@ import Layout from "../layouts/Layout.astro";
         Start your adventure
       </a>
     </div>
-    <div class="w-full text-center py-16">
-      <button
-        class="p-4 text-xl bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-        id="login"
-      >
-        Login to your account
-      </button>
-    </div>
   </main>
   <script>
     import { faro } from "@grafana/faro-web-sdk";
-    import { userManager, getUserData } from "../services/auth.ts";
+    import { get_id } from "../services/auth.ts";
 
-    getUserData().then((user) => {
+    get_id().then((user) => {
       if (user) {
         console.log("User is logged in:", user);
       } else {
         console.log("No user is logged in.");
       }
-    });
-
-    document.getElementById("login")?.addEventListener("click", async () => {
-      faro.api.pushEvent("init new login");
-      await userManager.signinRedirect();
     });
   </script>
 </Layout>
