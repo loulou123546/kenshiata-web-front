@@ -1,3 +1,4 @@
+import { faro } from "@grafana/faro-web-sdk";
 import { persistentMap } from "@nanostores/persistent";
 import { RefreshTokenResponse } from "@shared/types/Auth";
 import { z } from "zod";
@@ -66,6 +67,38 @@ async function refreshTokens() {
 	}
 }
 
+async function remaining_time_refresh_token_ms(): Promise<number | undefined> {
+	try {
+		const refresh_token_expires_after = (
+			import.meta.env?.PUBLIC_COGNITO_REFRESH_EXPIRES ?? "1 days"
+		).split(" ");
+		if (refresh_token_expires_after.length !== 2) return undefined;
+		let expires_after_ms = Number(refresh_token_expires_after[0]);
+		switch (refresh_token_expires_after[1]) {
+			case "days":
+				expires_after_ms *= 24;
+			case "hours":
+				expires_after_ms *= 60;
+			case "minutes":
+				expires_after_ms *= 60;
+			case "seconds":
+				expires_after_ms *= 1000;
+				break;
+			default:
+				return undefined;
+		}
+		const tokens = authTokens.get();
+		const token = tokens?.id_token ?? tokens?.access_token;
+		if (!token) return undefined;
+		const auth_time = unsafe_parse_token(token).payload?.auth_time;
+		if (typeof auth_time !== "number") return undefined;
+		return auth_time * 1000 + expires_after_ms - Date.now();
+	} catch (err) {
+		faro.api.pushError(err as Error);
+		return undefined;
+	}
+}
+
 function shouldRefreshToken() {
 	const tokens = authTokens.get();
 	if (!tokens?.access_token || !tokens?.id_token) return true;
@@ -83,6 +116,9 @@ function shouldRefreshToken() {
 }
 
 setTimeout(() => {
+	remaining_time_refresh_token_ms().then((ms) => {
+		console.log(`Refresh token expires in ${(ms ?? 0) / 3600000} hours`);
+	});
 	if (shouldRefreshToken()) refreshTokens().catch(console.error);
 }, 10);
 

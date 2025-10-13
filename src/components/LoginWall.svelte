@@ -1,15 +1,10 @@
 <script lang="ts">
-import { faro } from "@grafana/faro-web-sdk";
-import { getUserData, type User, userManager } from "../services/auth.ts";
+import { get_id } from "../services/auth.ts";
+import LoginSignup from "./Login-Signup/index.svelte";
 
 const { whenLoginOK } = $props();
 
-async function login() {
-	faro.api.pushEvent("init new login");
-	await userManager.signinRedirect();
-}
-
-const loading = getUserData();
+const loading = get_id();
 loading.then((user) => {
 	console.log("User data loaded:", user);
 	whenLoginOK();
@@ -49,6 +44,6 @@ loading.then((user) => {
         >
             Login to your account
         </button> -->
-        <LoginSignup/>
+        <LoginSignup />
     {/await}
 </main>
