@@ -93,7 +93,12 @@ function voteForChoice(index: number) {
                     <span class="px-2">{choice.text}</span>
                     {#each votes[choice.index] as player}
                         <img
-                            src={getAvatarSource(player?.data?.avatar)}
+                            src={getAvatarSource({
+								userId: player.userId,
+								id: player?.data?.character_id ?? "",
+								avatar: player?.data?.avatar ?? "add.png",
+								name: player?.data?.character_name ?? player.username
+							})}
                             alt={player?.data?.character_name ??
                                 player.username}
                             class="inline-block w-8 h-8 rounded-full -mr-3 last:mr-0"

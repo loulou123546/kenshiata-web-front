@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { Character } from "@shared/types/Character";
 import { getAvatarSource } from "../models/characters";
+
 let { user, onclick, onedit, customClass } = $props<{
 	user: Character | { name: string; avatar: string };
 	onclick: () => void;
@@ -22,7 +23,7 @@ if (!customClass) {
 >
     <img
         class="w-14 h-14 rounded-full"
-        src={getAvatarSource(user.avatar)}
+        src={getAvatarSource(user?.userId ? user : user.avatar)}
         alt="Avatar de {user.name}"
     />
     <h3 class="text-xl mx-4">{user.name}</h3>

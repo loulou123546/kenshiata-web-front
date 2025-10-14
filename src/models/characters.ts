@@ -9,17 +9,23 @@ export const Avatars = [
 	"default.png",
 	"boykisser.jpg",
 	"purple.jpg",
-	"kenshiata_ryugy_2025.png",
-	"tetsuo.png",
+	// "kenshiata_ryugy_2025.png",
+	// "tetsuo.png",
 	"fiverr.jpg",
 	"bluewolf.webp",
 ];
 
 export function getAvatarSource(
-	avatar: string | undefined = undefined,
+	avatar: string | Character | undefined = undefined,
 ): string {
 	if (!avatar) return "/avatar/add.png";
-	return `/avatar/${avatar}`;
+	const avatar_name = typeof avatar === "string" ? avatar : avatar.avatar;
+	if (avatar_name === "custom" && typeof avatar === "object") {
+		if (import.meta.env?.PUBLIC_FRONT_DOMAIN?.startsWith("http://localhost"))
+			return `https://kenshiata.studio/public/avatars/${avatar.userId}:${avatar.id}`;
+		return `/public/avatars/${avatar.userId}:${avatar.id}`;
+	}
+	return `/avatar/${avatar_name}`;
 }
 
 export async function listCharacters(): Promise<Character[]> {

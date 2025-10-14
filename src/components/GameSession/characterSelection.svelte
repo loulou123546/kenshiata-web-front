@@ -80,18 +80,31 @@ function select_character(char: Character) {
 
         <div class="flex flex-wrap flex-row gap-4">
             {#each roles as role}
-                <SmallPlayerCard
-                    customClass={myRole === role.tag
-                        ? "bg-gray-200 text-black border-4 border-blue-500"
-                        : "bg-gray-200 text-black hover:bg-gray-400"}
-                    user={{
-                        avatar: assignedPlayer?.[role.tag]?.data?.avatar ?? "add.png",
-                        name: assignedPlayer?.[role.tag]
-                            ? `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`
-                            : role.name,
-                    }}
-                    onclick={() => (myRole = role.tag)}
-                />
+                {#if assignedPlayer?.[role.tag]}
+                    <SmallPlayerCard
+                        customClass={myRole === role.tag
+                            ? "bg-gray-200 text-black border-4 border-blue-500"
+                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                        user={{
+                            userId: assignedPlayer[role.tag]?.userId,
+                            id: assignedPlayer[role.tag]?.data?.character_id,
+                            avatar: assignedPlayer[role.tag]?.data?.avatar ?? "add.png",
+                            name: `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`,
+                        }}
+                        onclick={() => {}}
+                    />
+                {:else}
+                    <SmallPlayerCard
+                        customClass={myRole === role.tag
+                            ? "bg-gray-200 text-black border-4 border-blue-500"
+                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                        user={{
+                            avatar: "add.png",
+                            name: role.name,
+                        }}
+                        onclick={() => (myRole = role.tag)}
+                    />
+                {/if}
             {/each}
         </div>
     {/if}
@@ -137,6 +150,8 @@ function select_character(char: Character) {
                             ? "bg-gray-200 text-black border-4 border-blue-500"
                             : "bg-gray-200 text-black hover:bg-gray-400"}
                         user={{
+                            userId: assignedPlayer[role.tag]?.userId,
+                            id: assignedPlayer[role.tag]?.data?.character_id,
                             avatar: assignedPlayer[role.tag]?.data?.avatar ?? "add.png",
                             name: `${assignedPlayer[role.tag].data?.character_name} is ${role.name}`,
                         }}
@@ -164,8 +179,10 @@ function select_character(char: Character) {
                             ? "bg-gray-200 text-black border-4 border-blue-500"
                             : "bg-gray-200 text-black hover:bg-gray-400"}
                         user={{
-                            avatar: assignedPlayer?.[player.userId]?.data?.avatar ?? "add.png",
-                            name: `${assignedPlayer?.[player.userId].username} is ${assignedPlayer?.[player.userId]?.data?.character_name}`,
+                            userId: player.userId,
+                            id: assignedPlayer[player.userId]?.data?.character_id,
+                            avatar: assignedPlayer[player.userId]?.data?.avatar ?? "add.png",
+                            name: `${assignedPlayer[player.userId].username} is ${assignedPlayer[player.userId]?.data?.character_name}`,
                         }}
                         onclick={() => {}}
                     />
