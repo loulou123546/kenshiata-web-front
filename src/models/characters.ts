@@ -1,7 +1,7 @@
 import { faro } from "@grafana/faro-web-sdk";
 import { Character, type NewCharacter } from "@shared/types/Character";
 import { atom } from "nanostores";
-import { getUserData } from "../services/auth";
+import { get_access_token } from "../services/auth";
 
 export const characters = atom<Character[]>([]);
 
@@ -24,14 +24,13 @@ export function getAvatarSource(
 
 export async function listCharacters(): Promise<Character[]> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/characters`,
 			{
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				mode: "cors",
 			},
@@ -61,14 +60,13 @@ export async function createCharacter(
 	character: NewCharacter,
 ): Promise<Character> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/characters`,
 			{
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				body: JSON.stringify(character),
 				mode: "cors",
@@ -90,14 +88,13 @@ export async function createCharacter(
 
 export async function editCharacter(character: Character): Promise<Character> {
 	try {
-		const user = await getUserData();
 		const response = await fetch(
 			`${import.meta.env.PUBLIC_API_DOMAIN}/characters`,
 			{
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${user?.token}`,
+					Authorization: `Bearer ${await get_access_token()}`,
 				},
 				body: JSON.stringify(character),
 				mode: "cors",

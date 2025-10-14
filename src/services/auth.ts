@@ -1,78 +1,242 @@
-import { persistentMap } from "@nanostores/persistent";
-import type { MapStore } from "nanostores";
-import { UserManager } from "oidc-client-ts";
+import { faro } from "@grafana/faro-web-sdk";
+import { persistentAtom, persistentMap } from "@nanostores/persistent";
+import { RefreshTokenResponse } from "@shared/types/Auth";
+import { createRemoteJWKSet, type JWTPayload, jwtVerify } from "jose";
 import { z } from "zod";
+
+type AuthTokens = {
+	access_token?: string;
+	id_token?: string;
+	refresh_token?: string;
+};
 
 export const User = z.object({
 	id: z.string(),
 	email: z.string().email(),
 	username: z.string(),
-	token: z.string(),
 });
 export type User = z.infer<typeof User>;
 
-class NanoStoreAsStoreManager {
-	private mapStore: MapStore<Record<string, string | undefined>>;
-	constructor(main_key: string) {
-		this.mapStore = persistentMap<Record<string, string | undefined>>(
-			main_key,
-			{},
-		);
-	}
-	async get(key: string): Promise<null | string> {
-		return this.mapStore.get()?.[key] ?? null;
-	}
-	async getAllKeys(): Promise<string[]> {
-		return Object.keys(this.mapStore.get() ?? {});
-	}
-	async remove(key: string): Promise<null | string> {
-		const previous = this.mapStore.get()?.[key] ?? null;
-		this.mapStore.setKey(key, undefined);
-		return previous;
-	}
-	async set(key: string, value: string): Promise<void> {
-		this.mapStore.setKey(key, value);
-	}
-}
-
-const cognitoAuthConfig = {
-	authority: "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Fzpf4i9XY",
-	client_id: "203t0a306t5vkid4kdeto2hs2i",
-	redirect_uri: `${import.meta.env.PUBLIC_FRONT_DOMAIN}/user/login`,
-	response_type: "code",
-	scope: "email openid phone profile",
-	// no revoke of "access token" (https://github.com/authts/oidc-client-ts/issues/262)
-	revokeTokenTypes: ["refresh_token" as const],
-	// no silent renew via "prompt=none" (https://github.com/authts/oidc-client-ts/issues/366)
-	automaticSilentRenew: false,
-	userStore: new NanoStoreAsStoreManager("oidc:cognito:user:"),
-	stateStore: new NanoStoreAsStoreManager("oidc:cognito:state:"),
-};
-
-// create a UserManager instance
-export const userManager = new UserManager({
-	...cognitoAuthConfig,
+const authTokens = persistentMap<AuthTokens>("auth-tokens:", {
+	access_token: undefined,
+	id_token: undefined,
+	refresh_token: undefined,
 });
 
-export async function signOutRedirect() {
-	const clientId = "203t0a306t5vkid4kdeto2hs2i";
-	const logoutUri = "<logout uri>";
-	const cognitoDomain =
-		"https://eu-west-1fzpf4i9xy.auth.eu-west-1.amazoncognito.com";
-	window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+export const currentUser = persistentMap<User>("auth-user:");
+
+export const authWarning = persistentAtom<"failed-refresh" | "login-soon" | "">(
+	"auth-warning",
+	"",
+);
+
+export type authIssue =
+	| "ok"
+	| "auth_now"
+	| "refresh_now"
+	| "auth_soon"
+	| "refresh_soon";
+
+const JWKS = createRemoteJWKSet(new URL(import.meta.env.PUBLIC_COGNITO_JWKS));
+
+async function parse_tokens(token: string): Promise<JWTPayload> {
+	if (!import.meta.env.PUBLIC_COGNITO_CLIENT_ID)
+		throw new Error("Missing Cognito Client ID");
+	if (!import.meta.env.PUBLIC_COGNITO_ISSUER)
+		throw new Error("Missing Cognito Issuer");
+
+	const { payload } = await jwtVerify(token, JWKS, {
+		issuer: import.meta.env.PUBLIC_COGNITO_ISSUER,
+		clockTolerance: "5 minutes",
+		maxTokenAge: "2 hours",
+		requiredClaims: ["sub", "token_use"],
+	});
+	if (
+		payload?.aud !== import.meta.env.PUBLIC_COGNITO_CLIENT_ID &&
+		payload?.client_id !== import.meta.env.PUBLIC_COGNITO_CLIENT_ID
+	)
+		throw new Error("Invalid audience / client ID for the token");
+	return payload;
 }
 
-export async function getUserData(): Promise<User | undefined> {
-	const user = await userManager.getUser();
-	if (!user) throw new Error("User is not authenticated");
-	if (user.expires_at && user.expires_at < Date.now() / 1000) {
-		await userManager.signinSilent();
-		return await getUserData();
+function unsafe_parse_token(token: string): {
+	header: Record<string, unknown>;
+	payload: Record<string, unknown>;
+} {
+	const parts = token.split(".");
+	return {
+		header: JSON.parse(atob(parts[0])),
+		payload: JSON.parse(atob(parts[1])),
+	};
+}
+
+export async function receiveTokens(tokens: AuthTokens): Promise<void> {
+	if (tokens.access_token)
+		authTokens.setKey("access_token", tokens.access_token);
+	if (tokens.refresh_token)
+		authTokens.setKey("refresh_token", tokens.refresh_token);
+	if (tokens.id_token) {
+		authTokens.setKey("id_token", tokens.id_token);
+		const payload = await parse_tokens(tokens.id_token);
+		currentUser.set(
+			User.parse({
+				id: payload.sub,
+				email: payload.email,
+				username: payload?.["cognito:username"],
+			}),
+		);
 	}
-	return User.parse({
-		id: user.profile.sub,
-		email: user.profile.email,
-		username: user.profile?.["cognito:username"],
-		token: user.access_token,
-	});
+}
+
+async function refreshTokens(): Promise<boolean> {
+	const token = authTokens.get()?.refresh_token;
+	if (!token) return false;
+	try {
+		const res = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/auth/refresh`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					refresh_token: token,
+				}),
+			},
+		);
+		const data = RefreshTokenResponse.parse(await res.json());
+		if (data?.success) {
+			await receiveTokens(data.success);
+			return true;
+		}
+		if (data?.error) throw new Error(data.error);
+	} catch (err) {
+		console.error(err);
+	}
+	return false;
+}
+
+function remaining_time_refresh_token_ms(): number | undefined {
+	try {
+		const refresh_token_expires_after = (
+			import.meta.env?.PUBLIC_COGNITO_REFRESH_EXPIRES ?? "1 days"
+		).split(" ");
+		if (refresh_token_expires_after.length !== 2) return undefined;
+		let expires_after_ms = Number(refresh_token_expires_after[0]);
+		switch (refresh_token_expires_after[1]) {
+			case "days":
+				expires_after_ms *= 24 * 60 * 60 * 1000;
+				break;
+			case "hours":
+				expires_after_ms *= 60 * 60 * 1000;
+				break;
+			case "minutes":
+				expires_after_ms *= 60 * 1000;
+				break;
+			case "seconds":
+				expires_after_ms *= 1000;
+				break;
+			default:
+				return undefined;
+		}
+		const tokens = authTokens.get();
+		const token = tokens?.id_token ?? tokens?.access_token;
+		if (!token) return undefined;
+		const auth_time = unsafe_parse_token(token).payload?.auth_time;
+		if (typeof auth_time !== "number") return undefined;
+		return auth_time * 1000 + expires_after_ms - Date.now();
+	} catch (err) {
+		faro.api.pushError(err as Error);
+		return undefined;
+	}
+}
+
+function remaining_time_tokens_ms(): number {
+	const tokens = authTokens.get();
+	if (!tokens?.access_token || !tokens?.id_token) return 0;
+	const id_payload = tokens?.id_token
+		? unsafe_parse_token(tokens?.id_token)
+		: undefined;
+	const at_payload = tokens?.access_token
+		? unsafe_parse_token(tokens?.access_token)
+		: undefined;
+	const now = Date.now();
+	return Math.min(
+		((id_payload?.payload?.exp ?? 0) as number) * 1000 - now,
+		((at_payload?.payload?.exp ?? 0) as number) * 1000 - now,
+	);
+}
+
+// Run every minutes to verify if authentification or refresh is needed
+function check_auth_issues(): authIssue {
+	const tokens = authTokens.get();
+	const user = currentUser.get();
+
+	if (!tokens?.refresh_token) return "auth_now";
+	if (!tokens?.access_token || !tokens?.id_token) return "refresh_now";
+	if (!user) return "refresh_now";
+
+	const tokens_expires_in = remaining_time_tokens_ms();
+	if (tokens_expires_in < 5 * 60 * 1000) return "refresh_soon";
+
+	const refresh_expires_in = remaining_time_refresh_token_ms();
+	if (refresh_expires_in && refresh_expires_in < 5 * 60 * 60 * 1000)
+		return "auth_soon";
+	return "ok";
+}
+
+let FAILED_REFRESH: number = 0;
+
+async function handle_auth_issues(): Promise<authIssue> {
+	const action = check_auth_issues();
+	console.debug("auth issues:", action, FAILED_REFRESH);
+	if (action === "ok") {
+		authWarning.set("");
+		FAILED_REFRESH = 0;
+		return action;
+	}
+	if (action === "auth_now") {
+		currentUser.set({} as User);
+		authTokens.set({});
+		FAILED_REFRESH = 0;
+		return action;
+	}
+	if (action === "refresh_now" || action === "refresh_soon") {
+		const success = await refreshTokens().catch((err) => {
+			console.error(err);
+			return false;
+		});
+		if (!success) {
+			if (FAILED_REFRESH >= 3) {
+				currentUser.set({} as User);
+				authTokens.set({});
+				return "auth_now";
+			} else {
+				authWarning.set("failed-refresh");
+				FAILED_REFRESH += 1;
+			}
+		}
+	}
+	if (action === "auth_soon") {
+		authWarning.set("login-soon");
+	}
+	return action;
+}
+
+// at start and then every minute
+setTimeout(handle_auth_issues, 10);
+setInterval(handle_auth_issues, 60000);
+
+export async function get_access_token(): Promise<string> {
+	if (check_auth_issues() !== "ok") await handle_auth_issues();
+	const tokens = authTokens.get();
+	if (!tokens?.access_token) throw new Error("User is not authenticated");
+	return tokens.access_token;
+}
+
+export async function get_id(): Promise<User> {
+	if (check_auth_issues() !== "ok") await handle_auth_issues();
+	const user = currentUser.get();
+	if (!user) throw new Error("User is not authenticated");
+	return user;
 }
