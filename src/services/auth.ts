@@ -125,11 +125,14 @@ function remaining_time_refresh_token_ms(): number | undefined {
 		let expires_after_ms = Number(refresh_token_expires_after[0]);
 		switch (refresh_token_expires_after[1]) {
 			case "days":
-				expires_after_ms *= 24;
+				expires_after_ms *= 24 * 60 * 60 * 1000;
+				break;
 			case "hours":
-				expires_after_ms *= 60;
+				expires_after_ms *= 60 * 60 * 1000;
+				break;
 			case "minutes":
-				expires_after_ms *= 60;
+				expires_after_ms *= 60 * 1000;
+				break;
 			case "seconds":
 				expires_after_ms *= 1000;
 				break;
