@@ -46,6 +46,11 @@ jobs:
           PUBLIC_API_DOMAIN: "https://api.kenshiata.studio"
           PUBLIC_WEBSOKET: "wss://ws.kenshiata.studio"
           PUBLIC_ENV: "prod"
+          PUBLIC_TURNSTILE_SITE: "0x4AAAAAAB6BSzxbfwIPSD81"
+          PUBLIC_COGNITO_REFRESH_EXPIRES: "5 days"
+          PUBLIC_COGNITO_ISSUER: "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Fzpf4i9XY"
+          PUBLIC_COGNITO_JWKS: "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Fzpf4i9XY/.well-known/jwks.json"
+          PUBLIC_COGNITO_CLIENT_ID: "203t0a306t5vkid4kdeto2hs2i"
           FARO_APP_ID: "82"
           FARO_STACK_ID: "1355729"
           FARO_API_KEY: ${{ secrets.FARO_API_KEY }}
