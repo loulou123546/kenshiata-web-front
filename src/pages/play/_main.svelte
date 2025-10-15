@@ -1,7 +1,7 @@
 <script lang="ts">
 import CharacterLibrary from "../../components/Characters/MyLibrary.svelte";
 import GameSessionPage from "../../components/GameSession/index.svelte";
-import LoginWall from "../../components/LoginWall.svelte";
+import LoginSignup from "../../components/Login-Signup/index.svelte";
 import MatchMaking from "../../components/MatchMaking.svelte";
 import type { GameSession } from "../../models/GameSession.ts";
 import { authWarning, currentUser } from "../../services/auth.ts";
@@ -16,15 +16,11 @@ currentUser.subscribe((value) => {
 function onJoinSession(session: GameSession) {
 	gameSession = session;
 }
-
-function loginDone() {
-	okLogin = true;
-}
 </script>
 
-<main class="p-8">
+<main class="p-2 xs:p-8 bg-sand-200 min-h-full">
     {#if !okLogin}
-        <LoginWall />
+        <LoginSignup />
     {:else}
     {#if $authWarning}
         <div class="p-4 rounded-lg m-8 bg-amber-700 text-white">

@@ -37,8 +37,6 @@ export type authIssue =
 	| "auth_soon"
 	| "refresh_soon";
 
-console.log(import.meta.env.PUBLIC_COGNITO_JWKS);
-console.log(import.meta.env);
 const JWKS = createRemoteJWKSet(new URL(import.meta.env.PUBLIC_COGNITO_JWKS));
 
 async function parse_tokens(token: string): Promise<JWTPayload> {
