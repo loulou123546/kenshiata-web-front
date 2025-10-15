@@ -11,7 +11,9 @@ import {
 	editStory,
 	getStory,
 	listStoriesByAuthor,
+	publishStory,
 } from "../../../models/stories";
+import { currentUser } from "../../../services/auth.ts";
 
 let okLogin: boolean = $state(false);
 let loading: boolean = $state(true);
@@ -21,9 +23,9 @@ let stories: Stories = $state([]);
 let selected_story: Story | undefined = $state(undefined);
 let inkContent: string = $state("");
 
-function loginDone() {
-	okLogin = true;
-}
+currentUser.subscribe((value) => {
+	okLogin = Boolean(value.id && value.username);
+});
 
 listStoriesByAuthor("me")
 	.then((data) => {
@@ -87,11 +89,20 @@ async function forceSaveBack() {
 	await saveStory.flush();
 	selected_story = undefined;
 }
+
+function publish() {
+	if (!selected_story) return;
+	publishStory({ id: selected_story?.id })
+		.then((errs) => {
+			if (errs) console.error(errs);
+		})
+		.catch((err) => console.error(err));
+}
 </script>
 
 <main class="p-8">
 	{#if !okLogin}
-        <LoginWall whenLoginOK={loginDone} />
+        <LoginWall />
     {:else}
 		{#if !selected_story}
 			<section class="p-6 border border-gray-400 rounded-xl">
@@ -113,6 +124,14 @@ async function forceSaveBack() {
 					<i class="fa-regular fa-circle-check text-green-600"></i>
 					{:else}
 					<i class="fa-solid fa-rotate text-gray-700 fa-spin"></i>
+					{/if}
+					{#if saving <= latest_save}
+						<button
+							class="float-right bg-blue-500 px-3 py-1 rounded-lg text-white hover:bg-blue-700"
+							onclick={publish}
+						>
+							Publish
+						</button>
 					{/if}
 				</h3>
 				<div class="w-full flex flex-row flex-wrap">

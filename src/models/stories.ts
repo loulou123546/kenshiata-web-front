@@ -1,5 +1,12 @@
 import { faro } from "@grafana/faro-web-sdk";
-import { type EditStory, Stories, Story } from "@shared/types/Story";
+import {
+	CompilerError,
+	type EditStory,
+	Stories,
+	Story,
+	type StoryId,
+} from "@shared/types/Story";
+import { z } from "zod";
 import { get_access_token } from "../services/auth";
 
 export async function listStoriesByAuthor(author: string): Promise<Stories> {
@@ -100,6 +107,31 @@ export async function editStory(story: EditStory): Promise<Story> {
 		}
 		const data = await response.json();
 		return Story.parse(data?.data);
+	} catch (err) {
+		faro.api.pushError(err as Error);
+		throw err;
+	}
+}
+
+export async function publishStory(story: StoryId): Promise<CompilerError[]> {
+	try {
+		const response = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/stories/publish`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${await get_access_token()}`,
+				},
+				mode: "cors",
+				body: JSON.stringify(story),
+			},
+		);
+		if (!response.ok) {
+			throw new Error(`Failed to publish story: ${response.statusText}`);
+		}
+		const data = await response.json();
+		return z.array(CompilerError).parse(data?.errors);
 	} catch (err) {
 		faro.api.pushError(err as Error);
 		throw err;
