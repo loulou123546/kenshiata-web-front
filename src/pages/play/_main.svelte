@@ -4,7 +4,7 @@ import GameSessionPage from "../../components/GameSession/index.svelte";
 import LoginSignup from "../../components/Login-Signup/index.svelte";
 import MatchMaking from "../../components/MatchMaking.svelte";
 import type { GameSession } from "../../models/GameSession.ts";
-import { authWarning, currentUser } from "../../services/auth.ts";
+import { currentUser, gameStatus } from "../../services/auth.ts";
 
 let okLogin: boolean = $state(false);
 let gameSession: GameSession | undefined = $state(undefined);
@@ -14,6 +14,7 @@ currentUser.subscribe((value) => {
 });
 
 function onJoinSession(session: GameSession) {
+	gameStatus.set("game");
 	gameSession = session;
 }
 </script>
@@ -22,23 +23,18 @@ function onJoinSession(session: GameSession) {
     {#if !okLogin}
         <LoginSignup />
     {:else}
-    {#if $authWarning}
-        <div class="p-4 rounded-lg m-8 bg-amber-700 text-white">
-            Warning : {$authWarning}
-        </div>
-    {/if}
         <CharacterLibrary />
         <section class="p-2 xs:p-8">
-        {#if gameSession}
-            <!-- <h1>
-                Game {gameSession.name} running with {gameSession.players
-                    .map((p) => p.username)
-                    .join(", ")} !
-            </h1> -->
-            <GameSessionPage {gameSession} />
-        {:else}
-            <MatchMaking {onJoinSession} />
-        {/if}
+            {#if gameSession}
+                <!-- <h1>
+                    Game {gameSession.name} running with {gameSession.players
+                        .map((p) => p.username)
+                        .join(", ")} !
+                </h1> -->
+                <GameSessionPage {gameSession} />
+            {:else}
+                <MatchMaking {onJoinSession} />
+            {/if}
         </section>
     {/if}
 </main>

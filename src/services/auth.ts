@@ -1,8 +1,11 @@
 import { faro } from "@grafana/faro-web-sdk";
-import { persistentAtom, persistentMap } from "@nanostores/persistent";
+import { persistentMap } from "@nanostores/persistent";
 import { RefreshTokenResponse } from "@shared/types/Auth";
 import { createRemoteJWKSet, type JWTPayload, jwtVerify } from "jose";
+import { atom } from "nanostores";
+import type { NotyfNotification } from "notyf";
 import { z } from "zod";
+import notyf from "./notyf";
 
 type AuthTokens = {
 	access_token?: string;
@@ -25,10 +28,7 @@ const authTokens = persistentMap<AuthTokens>("auth-tokens:", {
 
 export const currentUser = persistentMap<User>("auth-user:");
 
-export const authWarning = persistentAtom<"failed-refresh" | "login-soon" | "">(
-	"auth-warning",
-	"",
-);
+export const gameStatus = atom<"none" | "matchmaking" | "game">("none");
 
 export type authIssue =
 	| "ok"
@@ -186,12 +186,28 @@ function check_auth_issues(): authIssue {
 }
 
 let FAILED_REFRESH: number = 0;
+let authWarningNotyf: NotyfNotification | undefined;
+let refresh_handling: Promise<authIssue> | undefined;
 
-async function handle_auth_issues(): Promise<authIssue> {
+function handle_auth_issues(): Promise<authIssue> {
+	if (refresh_handling === undefined) {
+		console.log("Running handle_auth_issues");
+		refresh_handling = int_handle_auth_issues().finally(() => {
+			refresh_handling = undefined;
+		});
+		return refresh_handling;
+	} else {
+		console.log("Already running handle_auth_issues, return existing promise");
+		return refresh_handling;
+	}
+}
+
+async function int_handle_auth_issues(): Promise<authIssue> {
 	const action = check_auth_issues();
 	console.debug("auth issues:", action, FAILED_REFRESH);
+	if (authWarningNotyf) notyf.dismiss(authWarningNotyf);
+
 	if (action === "ok") {
-		authWarning.set("");
 		FAILED_REFRESH = 0;
 		return action;
 	}
@@ -203,6 +219,8 @@ async function handle_auth_issues(): Promise<authIssue> {
 	}
 	if (action === "refresh_now" || action === "refresh_soon") {
 		const success = await refreshTokens().catch((err) => {
+			faro.api.pushError(err as Error);
+			notyf.error("Erreur réseau lors de la reconnexion");
 			console.error(err);
 			return false;
 		});
@@ -212,20 +230,38 @@ async function handle_auth_issues(): Promise<authIssue> {
 				authTokens.set({});
 				return "auth_now";
 			} else {
-				authWarning.set("failed-refresh");
 				FAILED_REFRESH += 1;
+				authWarningNotyf = notyf.warning({
+					message: `Tentative de reconnexion ${FAILED_REFRESH}/3`,
+					duration: 0,
+					dismissible: false,
+					icon: {
+						className: "fa fa-circle-notch fa-spin",
+						tagName: "i",
+						color: "white",
+						text: "",
+					},
+				});
 			}
 		}
 	}
 	if (action === "auth_soon") {
-		authWarning.set("login-soon");
+		if (gameStatus.get() !== "game") {
+			notyf.warning(
+				"Votre connexion expire bientôt, veuillez-vous reconnecter avant de jouer",
+			);
+			currentUser.set({} as User);
+			authTokens.set({});
+			FAILED_REFRESH = 0;
+			return "auth_now";
+		}
 	}
 	return action;
 }
 
 // at start and then every minute
 setTimeout(handle_auth_issues, 10);
-setInterval(handle_auth_issues, 60000);
+setInterval(handle_auth_issues, 30000);
 
 export async function get_access_token(): Promise<string> {
 	if (check_auth_issues() !== "ok") await handle_auth_issues();

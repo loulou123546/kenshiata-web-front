@@ -2,7 +2,7 @@
 import type { GameRoom } from "@shared/types/GameRoom";
 import type { UserIdentity } from "@shared/types/User";
 import { getGameRoomNames } from "../../models/gameRoom";
-import type { User } from "../../services/auth";
+import { gameStatus, type User } from "../../services/auth";
 import type SocketAPI from "../../services/socketAPI";
 import RequestJoining from "./requestJoining.svelte";
 
@@ -14,6 +14,10 @@ const { socket, room, me } = $props<{
 let names: Record<string, UserIdentity> = $state({});
 let btnLocked = $state(false);
 
+$effect(() => {
+	gameStatus.set("matchmaking");
+});
+
 getGameRoomNames(room.hostId).then((values) => {
 	names = {
 		...names,
@@ -22,6 +26,7 @@ getGameRoomNames(room.hostId).then((values) => {
 });
 
 function leaveRoom() {
+	gameStatus.set("none");
 	socket.send("leave-room", { hostId: room.hostId });
 }
 
