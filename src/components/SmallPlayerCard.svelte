@@ -16,13 +16,13 @@ if (!customClass) {
 
 <button
     class={[
-        "py-2 px-6 rounded-xl shadow-lg flex flex-row items-center justify-center w-fit",
+        "py-1 md:py-2 px-2 md:px-6 rounded-xl shadow-lg flex flex-row items-center justify-center w-fit",
         customClass,
     ]}
     {onclick}
 >
     <img
-        class="w-14 h-14 rounded-full"
+        class="w-10 h-10 sm:w-14 sm:h-14 rounded-full"
         src={getAvatarSource(user?.userId ? user : user.avatar)}
         alt="Avatar de {user.name}"
     />

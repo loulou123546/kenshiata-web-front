@@ -17,12 +17,25 @@ $effect(() => {
 let editing: Character | {} | undefined = $state(undefined);
 // biome-ignore lint: username is modified on bind:value
 let selected: Character | undefined = $state(undefined);
+
+let reduce: boolean = $state(false);
+
+function toogleReduce() {
+	reduce = !reduce;
+}
 </script>
 
 <div
-    class="w-full p-8 bg-sand-400/70 shadow-lg rounded-xl flex flex-col flex-wrap items-center justify-center"
+    class={[
+        "w-full rounded-b-xl bg-sand-400/70 shadow-lg flex flex-col flex-wrap items-center justify-center",
+        reduce ? "pt-2" : "p-4 md:p-8"
+    ]}
 >
-    <h2 class="text-2xl text-center text-brown-900 font-semibold py-4">Ma Bibliothèque de personnages</h2>
+    <button class="text-lg md:text-2xl text-center text-brown-900 font-semibold pb-2 md:pb-4" onclick={toogleReduce}>Ma Bibliothèque <span class="hidden xs:inline">de personnages</span>
+        {#if reduce}
+            <i class="fa fa-chevron-down"></i>
+        {/if}
+    </button>
 
     {#if editing}
         <EditForm
@@ -35,11 +48,11 @@ let selected: Character | undefined = $state(undefined);
                 });
             }}
         />
-    {:else}
+    {:else if !reduce}
         {#await loading}
-            <div class="text-brown-800 text-lg">Chargement des personnages...</div>
+            <div class="text-brown-800 md:text-lg">Chargement des personnages...</div>
         {:then characters}
-            <div class="flex flex-row items-center justify-center w-full gap-8">
+            <div class="flex flex-col md:flex-row items-center justify-center w-full gap-2 md:gap-x-8 md:gap-y-4">
                 {#each characters as character}
                     <SmallPlayerCard
                         customClass={selected?.id === character.id
@@ -63,6 +76,11 @@ let selected: Character | undefined = $state(undefined);
                         editing = {};
                     }}
                 />
+                <button class="md:hidden text-sm text-brown-800/70" onclick={toogleReduce}>
+                    <i class="fa fa-chevron-up"></i>
+                    <span class="underline">Cacher la liste</span>
+                    <i class="fa fa-chevron-up"></i>
+                </button>
             </div>
         {:catch error}
             <div class="text-red-500">

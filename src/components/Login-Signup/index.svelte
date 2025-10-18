@@ -10,7 +10,7 @@ function switchMode() {
 }
 </script>
 
-<main class="w-full h-full flex items-center justify-center md:p-8">
+<main class="w-full h-full flex items-center justify-center p-2 xs:p-8">
     <section class="bg-sand-300/80 p-3 xs:p-6 rounded-lg w-full max-w-[512px] shadow-md lg:shadow-lg">
         {#if $mode === "login"}
             <h2 class="text-2xl font-semibold text-center">Connexion à votre compte</h2>

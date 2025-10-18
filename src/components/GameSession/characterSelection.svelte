@@ -75,7 +75,7 @@ function select_character(char: Character) {
 </script>
 
 {#if !readyToPlay}
-    {#if gamemode !== "no-roles"}
+    {#if gamemode && gamemode !== "no-roles"}
         <h2 class="text-2xl font-semibold pl-12 py-4">Rôles disponibles</h2>
 
         <div class="flex flex-wrap flex-row gap-4">
@@ -109,7 +109,7 @@ function select_character(char: Character) {
         </div>
     {/if}
 
-    <h2 class="text-2xl font-semibold pl-12 py-4">
+    <h2 class="text-xl xs:text-2xl font-semibold text-center xs:text-left xs:pl-12 py-4">
         {#if $characters.length >= 1}
             Jouer avec le personnage de
         {:else}
@@ -117,7 +117,7 @@ function select_character(char: Character) {
         {/if}
     </h2>
 
-    <div class="flex flex-wrap flex-row gap-4">
+    <div class="flex flex-wrap flex-col xs:flex-row gap-4 items-center xs:items-start">
         {#each $characters as character}
             <SmallPlayerCard
                 customClass={selectedCharacter?.id === character.id
@@ -129,10 +129,10 @@ function select_character(char: Character) {
         {/each}
     </div>
 
-    <div class="w-full text-center p-0 sm:p-8">
+    <div class="w-full text-center py-4 sm:p-8">
         {#if selectedCharacter && myRole}
             <button
-                class="bg-night-600 text-white p-4 font-semibold text-xl rounded-2xl hover:bg-night-700"
+                class="bg-night-600 text-white p-4 font-semibold text-lg xs:text-xl rounded-2xl hover:bg-night-700"
                 onclick={readyPlay}
             >
                 Prêt à jouer
@@ -140,11 +140,11 @@ function select_character(char: Character) {
         {/if}
     </div>
 {:else}
-    <h2 class="text-2xl font-semibold pl-12 py-4">
+    <h2 class="text-xl xs:text-2xl font-semibold text-center xs:text-left xs:pl-12 py-4">
         En attente des autres joueurs
     </h2>
 
-    {#if gamemode !== "no-roles"}
+    {#if gamemode && gamemode !== "no-roles"}
         <div class="flex flex-wrap flex-row gap-4">
             {#each roles as role}
                 {#if assignedPlayer?.[role.tag]}
@@ -204,9 +204,9 @@ function select_character(char: Character) {
         </div>
     {/if}
 
-    <div class="w-full text-center p-0 sm:p-8">
+    <div class="w-full text-center py-4 sm:p-8">
         <button
-            class="bg-night-600 text-white p-4 font-semibold text-xl rounded-2xl hover:bg-night-700"
+            class="bg-night-600 text-white p-2 px-4 xs:p-4 font-semibold text-lg xs:text-xl rounded-2xl hover:bg-night-700"
             onclick={() => {
                 readyToPlay = false;
             }}

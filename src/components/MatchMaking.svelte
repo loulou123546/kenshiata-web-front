@@ -65,14 +65,14 @@ socketP.then((socket) => {
 });
 </script>
 
-<div class="w-full p-4">
-    <div class="bg-brown-700/75 text-white w-full p-8 rounded-xl">
+<div class="w-full py-4 md:p-4">
+    <div class="bg-brown-700/75 text-white w-full p-3 md:p-8 rounded-xl">
         {#await socketP.then(async (socket) => {
             await socket.waitReady();
             return socket;
         })}
             <!-- https://uiverse.io/mobinkakei/pink-deer-76 -->
-            <div id="wifi-loader" class="mx-auto">
+            <div id="wifi-loader" class="mx-auto pt-3">
                 <svg class="circle-outer" viewBox="0 0 86 86">
                     <circle class="back" cx="43" cy="43" r="40"></circle>
                     <circle class="new" cx="43" cy="43" r="40"></circle>
@@ -85,27 +85,27 @@ socketP.then((socket) => {
                 </svg>
             </div>
 
-            <h2 class="text-2xl text-center py-4">Connexion au serveur...</h2>
+            <h2 class="text-lg md:text-2xl text-center py-4">Connexion au serveur...</h2>
         {:then socket}
             {#if currentRoom && me}
                 <InRoom {socket} room={currentRoom} {me} />
             {:else}
-                <h2 class="text-2xl text-center py-4">Commencer à jouer !</h2>
+                <h2 class="text-lg md:text-2xl text-center md:py-4">Commencer à jouer !</h2>
 
-                <div class="w-full flex flex-row">
-                    <div class="w-3/4">
+                <div class="w-full flex flex-col md:flex-row gap-y-2">
+                    <div class="md:w-3/4">
                         <!-- <h3 class="text-xl text-center">
                             Rejoindre une partie
                         </h3> -->
                         <List {socket} {rooms} />
                     </div>
-                    <div class="w-1/4">
+                    <div class="md:w-1/4">
                         <Create {socket} />
                     </div>
                 </div>
             {/if}
         {:catch error}
-            <h2 class="text-2xl text-center py-4 text-red-500">
+            <h2 class="text-lg md:text-2xl text-center py-4 text-red-500">
                 Erreur de connexion : {error.message}
             </h2>
         {/await}

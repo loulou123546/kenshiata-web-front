@@ -52,9 +52,9 @@ function vote(storyId: string) {
 }
 </script>
 
-<h2 class="text-2xl font-semibold pl-12 py-4">Aventures disponibles</h2>
+<h2 class="text-xl xs:text-2xl font-semibold text-center xs:text-left xs:pl-12 py-4">Aventures disponibles</h2>
 
-<div class="flex flex-wrap flex-row gap-4">
+<div class="flex flex-wrap flex-row gap-4 justify-center xs:justify-start">
     {#each stories as story}
         <button
             class={[

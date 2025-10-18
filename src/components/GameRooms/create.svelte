@@ -23,8 +23,8 @@ function createGame() {
 }
 </script>
 
-<div class="bg-sand-200/30 p-6 rounded-lg shadow-md">
-    <h2 class="text-2xl font-semibold mb-4">Créer une nouvelle partie</h2>
+<div class="bg-sand-200/30 p-3 md:p-6 rounded-lg shadow-md">
+    <h2 class="text-lg md:text-2xl font-semibold mb-4">Créer une nouvelle partie</h2>
     <p class="mb-4 text-sand-100">Choisissez un nom pour votre partie et créez-la.</p>
 
     <div class="mb-4">

@@ -55,16 +55,16 @@ function setLoading(promise: Promise<void>) {
 }
 </script>
 
-<ul class="p-2 flex flex-col gap-1">
+<ul class="md:p-2 flex flex-col gap-1">
     {#each rooms as room}
         <li class="">
             <button
                 class="px-2 py-1 rounded-lg bg-gray-100/75 hover:bg-sand-100/70 text-black w-full flex flex-col"
                 onclick={() => setLoading(selectRoom(room))}
             >
-                <div class="flex flex-row items-center justify-between w-full">
-                    <h3 class="text-xl font-semibold">{room.name}</h3>
-                    <p class="text-sm">
+                <div class="flex flex-col md:flex-row items-center justify-between w-full">
+                    <h3 class={["text-xl", selectedRoom?.hostId === room.hostId ? "font-semibold" : "xs:font-semibold"]}>{room.name}</h3>
+                    <p class={["text-sm", selectedRoom?.hostId === room.hostId ? "block" : "hidden xs:block"]}>
                         {room.players.length} Joueur{room.players.length === 1
                             ? ""
                             : "s"}
@@ -79,7 +79,11 @@ function setLoading(promise: Promise<void>) {
                     <a
                         href="#"
                         onclick={() => joinRoom(room.hostId)}
-                        class="text-white bg-night-600 hover:bg-night-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-4 py-2 text-center mr-2 inline-flex items-center"
+                        class={[
+                            "text-white font-medium rounded-lg px-4 py-2 text-center mr-2 items-center",
+                            "bg-night-600 hover:bg-night-700 focus:ring-4 focus:ring-night-800 focus:m-1",
+                            selectedRoom?.hostId === room.hostId ? "inline-flex" : "hidden xs:inline-flex"
+                        ]}
                     >
                         {#if ["pending", "accepted"].includes(joiningRooms?.[room.hostId])}
                             <svg
@@ -135,7 +139,7 @@ function setLoading(promise: Promise<void>) {
         </li>
     {/each}
     {#if rooms.length < 1}
-        <h3 class="text-xl text-center text-sand-200">
+        <h3 class="md:text-xl text-center text-sand-200">
             Il n'y a pas de parties disponible
         </h3>
     {/if}

@@ -18,7 +18,7 @@ function onJoinSession(session: GameSession) {
 }
 </script>
 
-<main class="p-2 xs:p-8 bg-sand-200 min-h-full">
+<main class="bg-sand-200 min-h-full">
     {#if !okLogin}
         <LoginSignup />
     {:else}
@@ -28,6 +28,7 @@ function onJoinSession(session: GameSession) {
         </div>
     {/if}
         <CharacterLibrary />
+        <section class="p-2 xs:p-8">
         {#if gameSession}
             <!-- <h1>
                 Game {gameSession.name} running with {gameSession.players
@@ -38,5 +39,6 @@ function onJoinSession(session: GameSession) {
         {:else}
             <MatchMaking {onJoinSession} />
         {/if}
+        </section>
     {/if}
 </main>
