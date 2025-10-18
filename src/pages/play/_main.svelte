@@ -29,11 +29,11 @@ function onJoinSession(session: GameSession) {
     {/if}
         <CharacterLibrary />
         {#if gameSession}
-            <h1>
+            <!-- <h1>
                 Game {gameSession.name} running with {gameSession.players
                     .map((p) => p.username)
                     .join(", ")} !
-            </h1>
+            </h1> -->
             <GameSessionPage {gameSession} />
         {:else}
             <MatchMaking {onJoinSession} />

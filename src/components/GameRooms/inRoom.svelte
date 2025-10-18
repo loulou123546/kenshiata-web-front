@@ -56,7 +56,7 @@ function startGame() {
             onclick={leaveRoom}>Fermer la session de jeu</button
         >
         <button
-            class="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-lg"
+            class="bg-night-600 text-white hover:bg-night-700 py-2 px-4 rounded-lg"
             disabled={btnLocked}
             onclick={startGame}>Lancer la partie</button
         >

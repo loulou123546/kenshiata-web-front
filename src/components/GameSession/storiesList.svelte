@@ -58,10 +58,10 @@ function vote(storyId: string) {
     {#each stories as story}
         <button
             class={[
-                "size-32 border shadow-xl rounded-2xl p-4 bg-gray-100 hover:bg-gray-200",
+                "h-32 min-w-32 shadow-xl rounded-2xl p-4 text-white font-semibold bg-cactus-700/60 hover:bg-cactus-800/70",
                 myvote === story.id
-                    ? "border-blue-500 border-4"
-                    : "border-gray-300",
+                    ? "border-cactus-900 border-4"
+                    : "",
             ]}
             onclick={() => vote(story.id)}
         >
@@ -77,7 +77,7 @@ function vote(storyId: string) {
 
             {#each votes?.[story.id] as voter}
                 <span
-                    class="p-1 m-1 rounded bg-blue-500 text-white text-xs whitespace-nowrap"
+                    class="p-1 m-1 rounded bg-night-700 text-white text-xs whitespace-nowrap"
                 >
                     + {voter.username}
                 </span>

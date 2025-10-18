@@ -83,8 +83,8 @@ function select_character(char: Character) {
                 {#if assignedPlayer?.[role.tag]}
                     <SmallPlayerCard
                         customClass={myRole === role.tag
-                            ? "bg-gray-200 text-black border-4 border-blue-500"
-                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                            ? "bg-cactus-700/70 text-white border-4 border-cactus-900"
+                            : "bg-cactus-700/70 text-white hover:bg-cactus-800/85"}
                         user={{
                             userId: assignedPlayer[role.tag]?.userId,
                             id: assignedPlayer[role.tag]?.data?.character_id,
@@ -96,8 +96,8 @@ function select_character(char: Character) {
                 {:else}
                     <SmallPlayerCard
                         customClass={myRole === role.tag
-                            ? "bg-gray-200 text-black border-4 border-blue-500"
-                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                            ? "bg-cactus-700/70 text-white border-4 border-cactus-900"
+                            : "bg-cactus-700/70 text-white hover:bg-cactus-800/85"}
                         user={{
                             avatar: "add.png",
                             name: role.name,
@@ -110,15 +110,19 @@ function select_character(char: Character) {
     {/if}
 
     <h2 class="text-2xl font-semibold pl-12 py-4">
-        Jouer avec le personnage de
+        {#if $characters.length >= 1}
+            Jouer avec le personnage de
+        {:else}
+            Utiliser la bibliothèque de personnage ci-dessus pour créer votre personnage
+        {/if}
     </h2>
 
     <div class="flex flex-wrap flex-row gap-4">
         {#each $characters as character}
             <SmallPlayerCard
                 customClass={selectedCharacter?.id === character.id
-                    ? "bg-gray-200 text-black border-4 border-blue-500"
-                    : "bg-gray-200 text-black hover:bg-gray-400"}
+                    ? "bg-cactus-700/70 text-white border-4 border-cactus-900"
+                    : "bg-cactus-700/70 text-white hover:bg-cactus-800/85"}
                 user={character}
                 onclick={() => select_character(character)}
             />
@@ -128,7 +132,7 @@ function select_character(char: Character) {
     <div class="w-full text-center p-0 sm:p-8">
         {#if selectedCharacter && myRole}
             <button
-                class="bg-blue-500 text-white p-4 font-semibold text-xl rounded-2xl"
+                class="bg-night-600 text-white p-4 font-semibold text-xl rounded-2xl hover:bg-night-700"
                 onclick={readyPlay}
             >
                 Prêt à jouer
@@ -147,8 +151,8 @@ function select_character(char: Character) {
                     <SmallPlayerCard
                         customClass={assignedPlayer[role.tag].userId ===
                         gameSession.myUserId
-                            ? "bg-gray-200 text-black border-4 border-blue-500"
-                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                            ? "bg-cactus-700/70 text-white border-4 border-cactus-900"
+                            : "bg-cactus-700/70 text-white hover:bg-cactus-800/85"}
                         user={{
                             userId: assignedPlayer[role.tag]?.userId,
                             id: assignedPlayer[role.tag]?.data?.character_id,
@@ -159,7 +163,7 @@ function select_character(char: Character) {
                     />
                 {:else}
                     <SmallPlayerCard
-                        customClass="bg-gray-200 text-black hover:bg-gray-400"
+                        customClass="bg-cactus-700/70 text-white hover:bg-cactus-800/85"
                         user={{
                             avatar: "add.png",
                             name: role.name,
@@ -176,8 +180,8 @@ function select_character(char: Character) {
                     <SmallPlayerCard
                         customClass={player.userId ===
                         gameSession.myUserId
-                            ? "bg-gray-200 text-black border-4 border-blue-500"
-                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                            ? "bg-cactus-700/70 text-white border-4 border-cactus-900"
+                            : "bg-cactus-700/70 text-white hover:bg-cactus-800/85"}
                         user={{
                             userId: player.userId,
                             id: assignedPlayer[player.userId]?.data?.character_id,
@@ -188,7 +192,7 @@ function select_character(char: Character) {
                     />
                 {:else}
                     <SmallPlayerCard
-                        customClass="bg-gray-200 text-black hover:bg-gray-400"
+                        customClass="bg-cactus-700/70 text-white hover:bg-cactus-800/85"
                         user={{
                             avatar: "add.png",
                             name: player.username,
@@ -202,7 +206,7 @@ function select_character(char: Character) {
 
     <div class="w-full text-center p-0 sm:p-8">
         <button
-            class="bg-blue-500 text-white p-4 font-semibold text-xl rounded-2xl"
+            class="bg-night-600 text-white p-4 font-semibold text-xl rounded-2xl hover:bg-night-700"
             onclick={() => {
                 readyToPlay = false;
             }}
