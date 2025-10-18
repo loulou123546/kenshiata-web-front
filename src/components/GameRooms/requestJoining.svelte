@@ -34,13 +34,13 @@ function respondInvite(userId: string, accept: boolean) {
         <div class="w-full flex flex-row items-center justify-center gap-4">
             <h3>{player.username} souhaite rejoindre la partie</h3>
             <button
-                class="bg-red-500 text-white hover:bg-red-700 py-2 px-4 rounded-lg"
+                class="bg-red-700 text-white hover:bg-red-800 py-2 px-4 rounded-lg"
                 onclick={() => respondInvite(player.id, false)}
             >
                 Refuser
             </button>
             <button
-                class="bg-green-500 text-white hover:bg-green-700 py-2 px-4 rounded-lg"
+                class="bg-cactus-600 text-white hover:bg-cactus-700 py-2 px-4 rounded-lg"
                 onclick={() => respondInvite(player.id, true)}
             >
                 Accepter

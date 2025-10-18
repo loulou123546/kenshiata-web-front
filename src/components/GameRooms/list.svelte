@@ -59,7 +59,7 @@ function setLoading(promise: Promise<void>) {
     {#each rooms as room}
         <li class="">
             <button
-                class="px-2 py-1 rounded-lg bg-gray-200 hover:bg-gray-300 text-black w-full flex flex-col"
+                class="px-2 py-1 rounded-lg bg-gray-100/75 hover:bg-sand-100/70 text-black w-full flex flex-col"
                 onclick={() => setLoading(selectRoom(room))}
             >
                 <div class="flex flex-row items-center justify-between w-full">
@@ -72,14 +72,14 @@ function setLoading(promise: Promise<void>) {
                             ? ` (+ ${room.invites.length} joueurs invités)`
                             : ""}
                     </p>
-                    <p class="text-sm">
+                    <!-- <p class="text-sm">
                         {room.public ? "Partie publique" : "Sur invitation"}
-                    </p>
+                    </p> -->
                     <!-- svelte-ignore a11y_invalid_attribute -->
                     <a
                         href="#"
                         onclick={() => joinRoom(room.hostId)}
-                        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-4 py-2 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 inline-flex items-center"
+                        class="text-white bg-night-600 hover:bg-night-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-4 py-2 text-center mr-2 inline-flex items-center"
                     >
                         {#if ["pending", "accepted"].includes(joiningRooms?.[room.hostId])}
                             <svg
@@ -134,4 +134,9 @@ function setLoading(promise: Promise<void>) {
             </button>
         </li>
     {/each}
+    {#if rooms.length < 1}
+        <h3 class="text-xl text-center text-sand-200">
+            Il n'y a pas de parties disponible
+        </h3>
+    {/if}
 </ul>

@@ -66,7 +66,7 @@ socketP.then((socket) => {
 </script>
 
 <div class="w-full p-4">
-    <div class="bg-gray-800 text-white w-full p-8 rounded-xl">
+    <div class="bg-brown-700/75 text-white w-full p-8 rounded-xl">
         {#await socketP.then(async (socket) => {
             await socket.waitReady();
             return socket;
@@ -94,9 +94,9 @@ socketP.then((socket) => {
 
                 <div class="w-full flex flex-row">
                     <div class="w-3/4">
-                        <h3 class="text-xl text-center">
+                        <!-- <h3 class="text-xl text-center">
                             Rejoindre une partie
-                        </h3>
+                        </h3> -->
                         <List {socket} {rooms} />
                     </div>
                     <div class="w-1/4">
