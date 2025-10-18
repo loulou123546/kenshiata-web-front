@@ -29,18 +29,18 @@ function respondInvite(userId: string, accept: boolean) {
 }
 </script>
 
-<ul class="w-full flex flex-col flex-wrap justify-center gap-4 py-8">
+<ul class="w-full flex flex-col flex-wrap justify-center gap-4 py-2 md:py-8">
     {#each requests as player}
-        <div class="w-full flex flex-row items-center justify-center gap-4">
-            <h3>{player.username} souhaite rejoindre la partie</h3>
+        <div class="w-full flex flex-row flex-wrap items-center justify-center gap-x-4 gap-y-2 bg-sand-200/40 p-1 rounded">
+            <h3><span class="font-semibold">{player.username}</span> souhaite rejoindre<span class="hidden xs:inline"> la partie</span></h3>
             <button
-                class="bg-red-500 text-white hover:bg-red-700 py-2 px-4 rounded-lg"
+                class="bg-red-700 text-white hover:bg-red-800 py-2 px-4 rounded-lg"
                 onclick={() => respondInvite(player.id, false)}
             >
                 Refuser
             </button>
             <button
-                class="bg-green-500 text-white hover:bg-green-700 py-2 px-4 rounded-lg"
+                class="bg-cactus-600 text-white hover:bg-cactus-700 py-2 px-4 rounded-lg"
                 onclick={() => respondInvite(player.id, true)}
             >
                 Accepter

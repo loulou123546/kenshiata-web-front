@@ -23,20 +23,20 @@ function createGame() {
 }
 </script>
 
-<div class="bg-gray-500 p-6 rounded-lg shadow-md">
-    <h2 class="text-2xl font-semibold mb-4">Créer une nouvelle partie</h2>
-    <p class="mb-4">Choisissez un nom pour votre partie et créez-la.</p>
+<div class="bg-sand-200/30 p-3 md:p-6 rounded-lg shadow-md">
+    <h2 class="text-lg md:text-2xl font-semibold mb-4">Créer une nouvelle partie</h2>
+    <p class="mb-4 text-sand-100">Choisissez un nom pour votre partie et créez-la.</p>
 
     <div class="mb-4">
         <label
             for="roomName"
-            class="block text-sm font-medium text-gray-300 mb-2"
+            class="block text-sm font-medium text-sand-100 mb-2"
             >Nom de la partie</label
         >
         <input
             id="roomName"
             type="text"
-            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-200 text-black"
+            class="w-full p-2 rounded-lg bg-gray-100/70 text-black"
             placeholder="Entrez le nom de la partie"
             bind:value={roomName}
             required
@@ -63,7 +63,7 @@ function createGame() {
         </select>
     </div> -->
     <button
-        class="px-4 py-2 rounded-lg bg-blue-600 text-white w-full text-center hover:bg-blue-700"
+        class="px-4 py-2 rounded-lg bg-night-700 text-white w-full text-center hover:bg-night-800"
         onclick={createGame}
     >
         Créer une partie

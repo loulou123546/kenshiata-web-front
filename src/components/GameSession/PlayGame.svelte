@@ -73,7 +73,7 @@ function voteForChoice(index: number) {
 }
 </script>
 
-<div class="p-8 bg-gray-300">
+<div class="p-8 max-w-[640px] mx-auto text-justify">
     {#each texts as text}
         <p class="mb-2">
             {text.text}
@@ -83,10 +83,10 @@ function voteForChoice(index: number) {
         </p>
     {/each}
 
-    <div class="flex flex-row flex-wrap">
+    <div class="flex flex-col flex-wrap">
         {#each choices as choice}
             <button
-                class="m-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                class="m-2 p-2 bg-cactus-600 text-white rounded hover:bg-cactus-700 w-fit"
                 onclick={() => voteForChoice(choice.index)}
             >
                 <div class="flex flex-row items-center justify-center">

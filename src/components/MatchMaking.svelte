@@ -65,50 +65,47 @@ socketP.then((socket) => {
 });
 </script>
 
-<div class="w-full p-4">
-    <div class="bg-gray-800 text-white w-full p-8 rounded-xl">
+<div class="w-full py-4 md:p-4">
+    <div class="bg-brown-700/75 text-white w-full p-3 md:p-8 rounded-xl">
         {#await socketP.then(async (socket) => {
             await socket.waitReady();
             return socket;
         })}
             <!-- https://uiverse.io/mobinkakei/pink-deer-76 -->
-            <div id="wifi-loader" class="mx-auto">
+            <div id="wifi-loader" class="mx-auto pt-3">
                 <svg class="circle-outer" viewBox="0 0 86 86">
                     <circle class="back" cx="43" cy="43" r="40"></circle>
-                    <!-- <circle class="front" cx="43" cy="43" r="40"></circle> -->
                     <circle class="new" cx="43" cy="43" r="40"></circle>
                 </svg>
                 <svg class="circle-middle" viewBox="0 0 60 60">
                     <circle class="back" cx="30" cy="30" r="27"></circle>
-                    <!-- <circle class="front" cx="30" cy="30" r="27"></circle> -->
                 </svg>
                 <svg class="circle-inner" viewBox="0 0 34 34">
                     <circle class="back" cx="17" cy="17" r="14"></circle>
-                    <!-- <circle class="front" cx="17" cy="17" r="14"></circle> -->
                 </svg>
             </div>
 
-            <h2 class="text-2xl text-center py-4">Connexion au serveur...</h2>
+            <h2 class="text-lg md:text-2xl text-center py-4">Connexion au serveur...</h2>
         {:then socket}
             {#if currentRoom && me}
                 <InRoom {socket} room={currentRoom} {me} />
             {:else}
-                <h2 class="text-2xl text-center py-4">Commencer à jouer !</h2>
+                <h2 class="text-lg md:text-2xl text-center md:py-4">Commencer à jouer !</h2>
 
-                <div class="w-full flex flex-row">
-                    <div class="w-3/4">
-                        <h3 class="text-xl text-center">
+                <div class="w-full flex flex-col md:flex-row gap-y-2">
+                    <div class="md:w-3/4">
+                        <!-- <h3 class="text-xl text-center">
                             Rejoindre une partie
-                        </h3>
+                        </h3> -->
                         <List {socket} {rooms} />
                     </div>
-                    <div class="w-1/4">
+                    <div class="md:w-1/4">
                         <Create {socket} />
                     </div>
                 </div>
             {/if}
         {:catch error}
-            <h2 class="text-2xl text-center py-4 text-red-500">
+            <h2 class="text-lg md:text-2xl text-center py-4 text-red-500">
                 Erreur de connexion : {error.message}
             </h2>
         {/await}
@@ -118,8 +115,6 @@ socketP.then((socket) => {
 <style>
     #wifi-loader {
         --background: #62abff;
-        /* --front-color: #4f29f0; */
-        /* --back-color: #c3c8de; */
         --back-color: #d0d2df;
         --text-color: #414856;
         width: 64px;

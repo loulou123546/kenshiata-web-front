@@ -76,30 +76,30 @@ async function prepareCustomAvatar() {
 </script>
 
 <div
-    class="p-4 m-8 rounded-xl bg-gray-300 text-black shadow-lg text-center relative"
+    class="py-2 md:p-4 md:m-8 rounded-xl bg-gray-300/40 text-black shadow-lg text-center relative"
 >
-    <h3 class="text-xl">
-        {#if source}
+    <h3 class="text-lg md:text-xl">
+        {#if source?.name}
             Modifier {source.name}
         {:else}
             Créer un personnage
         {/if}
     </h3>
     <button
-        class="absolute top-3 right-5 text-2xl text-gray-700 hover:text-black"
+        class="absolute top-1 md:top-3 right-2 md:right-5 text-2xl text-gray-700 hover:text-black"
         aria-label="Close"
         onclick={onclose}
     >
         <i class="fa fa-times"></i>
     </button>
 
-    <div class="flex flex-wrap flex-row items-center justify-center py-2">
+    <div class="flex flex-wrap flex-row items-center justify-center md:py-2">
         {#each Avatars as avatarImg}
             <button onclick={() => setAvatarImage(avatarImg)}>
                 <img
                     class={[
-                        "w-24 h-24 rounded-full m-2 cursor-pointer",
-                        avatar === avatarImg && "border-4 border-green-500",
+                        "w-16 h-16 md:w-24 md:h-24 rounded-full m-2 cursor-pointer",
+                        avatar === avatarImg && "border-4 border-cactus-600",
                     ]}
                     src={getAvatarSource(avatarImg)}
                     alt="Avatar {avatarImg}"
@@ -110,8 +110,8 @@ async function prepareCustomAvatar() {
             <button onclick={() => setAvatarImage("custom")}>
                 <img
                     class={[
-                        "w-24 h-24 rounded-full m-2 cursor-pointer",
-                        avatar === "custom" && "border-4 border-green-500",
+                        "w-16 h-16 md:w-24 md:h-24 rounded-full m-2 cursor-pointer",
+                        avatar === "custom" && "border-4 border-cactus-600",
                     ]}
                     src={getAvatarSource(source)}
                     alt="Avatar custom"
@@ -122,8 +122,8 @@ async function prepareCustomAvatar() {
             <input bind:files={custom_avatar} class="hidden" type="file" accept="image/png, image/jpeg" onclick={() => setAvatarImage("new-custom")} onchange={() => prepareCustomAvatar()}>
             <img
                 class={[
-                    "w-24 h-24 rounded-full m-2 cursor-pointer",
-                    avatar === "new-custom" && "border-4 border-green-500",
+                    "w-16 h-16 md:w-24 md:h-24 rounded-full m-2 cursor-pointer",
+                    avatar === "new-custom" && "border-4 border-cactus-600",
                 ]}
                 src={avatar_as_b64 ? avatar_as_b64 : getAvatarSource("upload.png")}
                 alt="Upload your avatar"
@@ -132,14 +132,14 @@ async function prepareCustomAvatar() {
     </div>
 
     <input
-        class="p-2 my-2 rounded-lg border border-gray-400 min-w-1/2"
+        class="p-2 my-2 rounded-lg bg-gray-100/70 min-w-1/2"
         type="text"
         placeholder="Nom du personnage"
         bind:value={username}
     />
     <br />
     <button
-        class="mt-6 py-2 px-4 bg-green-600 text-white font-semibold"
+        class="md:mt-6 py-2 px-4 rounded-lg bg-cactus-600 hover:bg-cactus-700 text-white font-semibold"
         onclick={save}>Sauvegarder</button
     >
 </div>

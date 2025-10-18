@@ -1,5 +1,4 @@
 <script lang="ts">
-import { faro } from "@grafana/faro-web-sdk";
 import { persistentAtom } from "@nanostores/persistent";
 import LoginForm from "./loginForm.svelte";
 import SignupForm from "./signupForm.svelte";
@@ -11,14 +10,21 @@ function switchMode() {
 }
 </script>
 
-<section class="bg-gray-300 p-6 rounded-lg shadow-md w-full max-w-[512px]">
-    {#if $mode === "login"}
-        <h2 class="text-2xl font-semibold mb-4 text-center">Connexion à votre compte</h2>
-        <button class="text-blue-600 hover:text-blue-900 w-full mb-4" onclick={switchMode}>Je n'ai pas de compte : M'inscrire</button>
-        <LoginForm />
-    {:else}
-        <h2 class="text-2xl font-semibold mb-4 text-center">Créer votre compte</h2>
-        <button class="text-blue-600 hover:text-blue-900 w-full mb-4" onclick={switchMode}>J'ai déjà un compte : Me connecter</button>
-        <SignupForm />
-    {/if}
-</section>
+<main class="w-full h-full flex items-center justify-center p-2 xs:p-8">
+    <section class="bg-sand-300/80 p-3 xs:p-6 rounded-lg w-full max-w-[512px] shadow-md lg:shadow-lg">
+        {#if $mode === "login"}
+            <h2 class="text-2xl font-semibold text-center">Connexion à votre compte</h2>
+            <div class="w-full text-center pt-4 pb-8">
+                <button class="bg-cactus-800/80 hover:bg-cactus-900 text-white px-4 py-2 rounded-lg" onclick={switchMode}>Pas de compte ? Inscription</button>
+            </div>
+            
+            <LoginForm />
+        {:else}
+            <h2 class="text-2xl font-semibold text-center">Créer votre compte</h2>
+            <div class="w-full text-center pt-4 pb-8">
+                <button class="bg-cactus-800/80 hover:bg-cactus-900 text-white px-4 py-2 rounded-lg" onclick={switchMode}>Déjà un compte ? Connexion</button>
+            </div>
+            <SignupForm />
+        {/if}
+    </section>
+</main>

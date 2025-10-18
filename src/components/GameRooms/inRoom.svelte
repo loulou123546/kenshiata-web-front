@@ -2,7 +2,7 @@
 import type { GameRoom } from "@shared/types/GameRoom";
 import type { UserIdentity } from "@shared/types/User";
 import { getGameRoomNames } from "../../models/gameRoom";
-import type { User } from "../../services/auth";
+import { gameStatus, type User } from "../../services/auth";
 import type SocketAPI from "../../services/socketAPI";
 import RequestJoining from "./requestJoining.svelte";
 
@@ -14,6 +14,10 @@ const { socket, room, me } = $props<{
 let names: Record<string, UserIdentity> = $state({});
 let btnLocked = $state(false);
 
+$effect(() => {
+	gameStatus.set("matchmaking");
+});
+
 getGameRoomNames(room.hostId).then((values) => {
 	names = {
 		...names,
@@ -22,6 +26,7 @@ getGameRoomNames(room.hostId).then((values) => {
 });
 
 function leaveRoom() {
+	gameStatus.set("none");
 	socket.send("leave-room", { hostId: room.hostId });
 }
 
@@ -34,10 +39,10 @@ function startGame() {
 }
 </script>
 
-<h2 class="text-2xl text-center py-4">
-    Session de jeu : {room.name} ({room.public ? "publique" : "sur invitation"})
+<h2 class="text-lg md:text-2xl text-center py-4">
+    Session de jeu : {room.name} <!--({room.public ? "publique" : "sur invitation"})-->
 </h2>
-<ul class="w-full flex flex-row flex-wrap justify-center gap-x-8 gap-y-4 py-8">
+<ul class="w-full flex flex-row flex-wrap justify-center gap-3 md:gap-x-8 md:gap-y-4 py-2 md:py-8">
     {#each room.players as player}
         <li class="bg-gray-200 text-black px-4 py-2 rounded-lg">
             {player === me?.id ? "Moi" : (names[player]?.username ?? player)}
@@ -48,7 +53,7 @@ function startGame() {
     {/each}
 </ul>
 <RequestJoining {socket} {room} />
-<div class="flex flex-row justify-around">
+<div class="flex flex-row justify-around gap-2">
     {#if room.hostId === me?.id}
         <button
             class="bg-red-700 text-white hover:bg-red-800 py-2 px-4 rounded-lg"
@@ -56,7 +61,7 @@ function startGame() {
             onclick={leaveRoom}>Fermer la session de jeu</button
         >
         <button
-            class="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-lg"
+            class="bg-night-600 text-white hover:bg-night-700 py-2 px-4 rounded-lg"
             disabled={btnLocked}
             onclick={startGame}>Lancer la partie</button
         >

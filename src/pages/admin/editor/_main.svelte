@@ -5,7 +5,7 @@ import debounce from "lodash/debounce";
 import InkEditor from "../../../components/AdminEditor/InkEditor.svelte";
 // import InkGraph from "../../../components/InkGraph.svelte";
 import InkPlayer from "../../../components/AdminEditor/InkPlayer.svelte";
-import LoginWall from "../../../components/LoginWall.svelte";
+import LoginSignup from "../../../components/Login-Signup/index.svelte";
 import {
 	createStory,
 	editStory,
@@ -102,7 +102,7 @@ function publish() {
 
 <main class="p-8">
 	{#if !okLogin}
-        <LoginWall />
+        <LoginSignup />
     {:else}
 		{#if !selected_story}
 			<section class="p-6 border border-gray-400 rounded-xl">

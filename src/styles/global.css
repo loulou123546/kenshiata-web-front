@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+/* biome-ignore lint/suspicious/noUnknownAtRules: tailwind specific rule */
+@theme {
+	--color-brown-900: hsl(30 50% 10%);
+	--color-brown-800: hsl(30 50% 20%);
+	--color-brown-700: hsl(30 50% 30%);
+	--color-brown-600: hsl(30 50% 40%);
+	--color-brown-500: hsl(30 50% 50%);
+
+	--color-sand-100: hsl(40 60% 90%);
+	--color-sand-200: hsl(40 50% 80%);
+	--color-sand-300: hsl(40 40% 70%);
+	--color-sand-400: hsl(40 30% 60%);
+	--color-sand-500: hsl(40 20% 50%);
+
+	--color-cactus-900: hsl(94 80% 10%);
+	--color-cactus-800: hsl(94 50% 20%);
+	--color-cactus-700: hsl(94 50% 30%);
+	--color-cactus-600: hsl(94 45% 40%);
+	--color-cactus-500: hsl(94 40% 50%);
+
+	--color-flash-orange-700: hsl(35 90% 30%);
+	--color-flash-orange-600: hsl(35 90% 40%);
+	--color-flash-orange-500: hsl(35 90% 50%);
+	--color-flash-orange-400: hsl(35 90% 60%);
+	--color-flash-orange-300: hsl(35 90% 70%);
+
+	--color-night-900: hsl(205 80% 10%);
+	--color-night-800: hsl(205 50% 20%);
+	--color-night-700: hsl(205 50% 30%);
+	--color-night-600: hsl(205 40% 40%);
+	--color-night-500: hsl(205 30% 50%);
+
+	--color-notif-red: hsl(15 100% 40%);
+
+	--breakpoint-xs: 30rem;
+}

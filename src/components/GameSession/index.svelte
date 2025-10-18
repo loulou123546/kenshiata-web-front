@@ -5,8 +5,8 @@ import type {
 } from "@shared/types/GameSession";
 import { GameStory } from "@shared/types/GameStory";
 import type { GameSession } from "../../models/GameSession";
-import PlayGame from "./PlayGame.svelte";
 import CharacterSelection from "./characterSelection.svelte";
+import PlayGame from "./PlayGame.svelte";
 import StoriesList from "./storiesList.svelte";
 
 const { gameSession } = $props<{
@@ -42,7 +42,7 @@ gameSession.addListener(
 {#if !story}
 	<StoriesList {gameSession} />
 {:else if !playing}
-	Running {story.name} !
+	<!-- Running {story.name} ! -->
 	<CharacterSelection {gameSession} storyId={story.id} />
 {:else}
 	<PlayGame {gameSession} />
