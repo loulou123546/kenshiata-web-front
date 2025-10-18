@@ -20,9 +20,9 @@ let selected: Character | undefined = $state(undefined);
 </script>
 
 <div
-    class="w-full p-8 bg-gray-700 text-white rounded-xl flex flex-col flex-wrap items-center justify-center"
+    class="w-full p-8 bg-sand-400/70 shadow-lg rounded-xl flex flex-col flex-wrap items-center justify-center"
 >
-    <h2 class="text-2xl text-center py-4">Ma Bibliothèque de personnages</h2>
+    <h2 class="text-2xl text-center text-brown-900 font-semibold py-4">Ma Bibliothèque de personnages</h2>
 
     {#if editing}
         <EditForm
@@ -37,14 +37,14 @@ let selected: Character | undefined = $state(undefined);
         />
     {:else}
         {#await loading}
-            <div class="text-white text-lg">Chargement des personnages...</div>
+            <div class="text-brown-800 text-lg">Chargement des personnages...</div>
         {:then characters}
             <div class="flex flex-row items-center justify-center w-full gap-8">
                 {#each characters as character}
                     <SmallPlayerCard
                         customClass={selected?.id === character.id
-                            ? "bg-gray-200 text-black border-5 border-blue-500"
-                            : "bg-gray-200 text-black hover:bg-gray-400"}
+                            ? "bg-gray-300/40 text-black border-5 border-cactus-700"
+                            : "bg-gray-300/40 text-black hover:bg-gray-100/40"}
                         user={character}
                         onclick={() => {
                             selected = character;

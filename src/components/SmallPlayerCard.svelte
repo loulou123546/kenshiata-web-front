@@ -10,7 +10,7 @@ let { user, onclick, onedit, customClass } = $props<{
 }>();
 
 if (!customClass) {
-	customClass = "bg-gray-200 text-black hover:bg-gray-400";
+	customClass = "bg-gray-300/40 text-black hover:bg-gray-100/40";
 }
 </script>
 
@@ -29,7 +29,7 @@ if (!customClass) {
     <h3 class="text-xl mx-4">{user.name}</h3>
     {#if onedit}
         <a
-            class="text-gray-600 hover:text-gray-900"
+            class="text-gray-700 hover:text-gray-900"
             href="#"
             onclick={onedit}
             aria-label="Edit User"
