@@ -182,6 +182,7 @@ function check_auth_issues(): authIssue {
 	if (!user) return "refresh_now";
 
 	const tokens_expires_in = remaining_time_tokens_ms();
+	if (tokens_expires_in < 0) return "refresh_now";
 	if (tokens_expires_in < 5 * 60 * 1000) return "refresh_soon";
 
 	const refresh_expires_in = remaining_time_refresh_token_ms();
@@ -247,6 +248,9 @@ async function int_handle_auth_issues(): Promise<authIssue> {
 						text: "",
 					},
 				});
+				if (action === "refresh_now") {
+					setInterval(handle_auth_issues, 5000 * FAILED_REFRESH);
+				}
 			}
 		}
 	}
