@@ -83,8 +83,23 @@ async function InitSignUp() {
 			step = "confirm";
 		} else if (data?.error) {
 			faro.api.pushError(new Error(data?.error));
-			notyf.error("Echec lors de l'inscription");
-			console.error(data.error);
+			switch (data?.error) {
+				case "UsernameExistsException":
+					notyf.error("Ce nom d'utilisateur est déjà pris");
+					break;
+				case "InvalidPasswordException":
+					notyf.error(
+						"Votre mot de passe ne respecte pas les règles de sécurité",
+					);
+					break;
+				case "CodeDeliveryFailureException":
+					notyf.error("Erreur lors de l'envoi du code à votre adresse email");
+					break;
+				default:
+					notyf.error("Echec lors de l'inscription");
+					console.error(data.error);
+					break;
+			}
 		} else {
 			notyf.error("Comportement inatendu, veuillez ré-essayer");
 			console.log(data);
@@ -138,8 +153,23 @@ async function ConfirmSignUp() {
 			await receiveTokens(data.success);
 		} else if (data?.error) {
 			faro.api.pushError(new Error(data?.error));
-			notyf.error("Echec lors de l'inscription");
-			console.error(data.error);
+			switch (data?.error) {
+				case "AliasExistsException":
+					notyf.error(
+						"Cette adresse email est déjà utilisé sur un autre compte",
+					);
+					break;
+				case "CodeMismatchException":
+					notyf.error("Le code fourni n'est pas correct");
+					break;
+				case "ExpiredCodeException":
+					notyf.error("Le code fourni est obsolète, veuillez recommencer");
+					break;
+				default:
+					notyf.error("Echec lors de l'inscription");
+					console.error(data.error);
+					break;
+			}
 		} else {
 			notyf.error("Comportement inatendu, veuillez ré-essayer");
 			console.log(data);
