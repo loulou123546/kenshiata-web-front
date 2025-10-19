@@ -87,6 +87,23 @@ socketP
 	.catch((_err) => {
 		notyf.error("Erreur lors de la connexion au serveur websocket");
 	});
+
+async function shareWithFriends() {
+	const data = {
+		url: "https://kenshiata.studio",
+		title: "Viens explorer le far-west avec moi",
+	};
+	if (navigator?.canShare?.(data)) {
+		navigator.share(data);
+	} else {
+		try {
+			await navigator.clipboard.writeText("https://kenshiata.studio");
+			notyf.success("Lien copié dans le presse-papier");
+		} catch {
+			notyf.warning("Votre navigateur ne supporte pas le partage de lien");
+		}
+	}
+}
 </script>
 
 <div class="w-full py-4 md:p-4">
@@ -122,6 +139,11 @@ socketP
                             Rejoindre une partie
                         </h3> -->
                         <List {socket} {rooms} />
+                        <div class="text-center pt-4">
+                            <button class="bg-cactus-700 text-white hover:bg-cactus-800 px-4 py-2 rounded-lg" onclick={shareWithFriends}>
+                                Inviter des amis <i class="fa fa-share-from-square ml-1"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="md:w-1/4">
                         <Create {socket} />

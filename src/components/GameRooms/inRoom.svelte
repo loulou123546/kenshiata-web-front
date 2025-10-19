@@ -42,6 +42,26 @@ function startGame() {
 		btnLocked = false;
 	}, 5000);
 }
+
+async function shareWithFriends() {
+	const data = {
+		url: "https://kenshiata.studio/play",
+		title: "Viens explorer le far-west avec moi",
+		text: `Créer un compte et rejoins ma partie: ${room.name}`,
+	};
+	if (navigator?.canShare?.(data)) {
+		navigator.share(data);
+	} else {
+		try {
+			await navigator.clipboard.writeText(
+				`Rejoins ma partie: ${room.name} sur https://kenshiata.studio/play`,
+			);
+			notyf.success("Lien copié dans le presse-papier");
+		} catch {
+			notyf.warning("Votre navigateur ne supporte pas le partage de lien");
+		}
+	}
+}
 </script>
 
 <h2 class="text-lg md:text-2xl text-center py-4">
@@ -58,13 +78,16 @@ function startGame() {
     {/each}
 </ul>
 <RequestJoining {socket} {room} />
-<div class="flex flex-row justify-around gap-2">
+<div class="flex flex-row flex-wrap justify-around gap-2">
     {#if room.hostId === me?.id}
         <button
             class="bg-red-700 text-white hover:bg-red-800 py-2 px-4 rounded-lg"
             disabled={btnLocked}
             onclick={leaveRoom}>Fermer la session de jeu</button
         >
+        <button class="bg-cactus-700 text-white hover:bg-cactus-800 px-4 py-2 rounded-lg" onclick={shareWithFriends}>
+            Inviter des amis <i class="fa fa-share-from-square ml-1"></i>
+        </button>
         <button
             class="bg-night-600 text-white hover:bg-night-700 py-2 px-4 rounded-lg"
             disabled={btnLocked}
