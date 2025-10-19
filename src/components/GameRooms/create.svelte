@@ -1,4 +1,6 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
+import notyf from "../../services/notyf";
 import type SocketAPI from "../../services/socketAPI";
 
 const { socket } = $props<{
@@ -10,7 +12,7 @@ let roomType: "private" | "public" = $state("public");
 
 function createGame() {
 	if (roomName.trim().length < 3 || roomName.trim().length > 256) {
-		alert("Le nom de la partie doit contenir entre 3 et 256 caractères.");
+		notyf.error("Le nom de la partie doit contenir entre 3 et 256 caractères.");
 		return;
 	}
 
@@ -20,6 +22,7 @@ function createGame() {
 	});
 	roomName = "";
 	roomType = "public";
+	notyf.success("Création de la partie");
 }
 </script>
 

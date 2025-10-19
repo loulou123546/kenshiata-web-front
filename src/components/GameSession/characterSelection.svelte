@@ -6,6 +6,7 @@ import { z } from "zod";
 import { characters } from "../../models/characters";
 import type { GameSession } from "../../models/GameSession";
 import { getStoryMetadata } from "../../models/gameStory";
+import notyf from "../../services/notyf";
 import SmallPlayerCard from "../SmallPlayerCard.svelte";
 
 const { gameSession, storyId } = $props<{
@@ -20,6 +21,10 @@ let myRole: string = $state("");
 let selectedCharacter: Character | undefined = $state(undefined);
 let readyToPlay: boolean = $state(false);
 
+faro.api.setView({
+	name: "character-choice",
+});
+
 getStoryMetadata(storyId)
 	.then((data) => {
 		gamemode = data.gamemode;
@@ -28,9 +33,8 @@ getStoryMetadata(storyId)
 			myRole = gameSession.myUserId;
 		}
 	})
-	.catch((err) => {
-		faro.api.pushError(err);
-		alert(err);
+	.catch((_err) => {
+		notyf.error("Problème lors de la récupération des données de l'histoire");
 	});
 
 function selectedRole(tag: string, user: GamePlayer) {

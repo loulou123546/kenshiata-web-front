@@ -1,4 +1,5 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
 import CharacterLibrary from "../../components/Characters/MyLibrary.svelte";
 import GameSessionPage from "../../components/GameSession/index.svelte";
 import LoginSignup from "../../components/Login-Signup/index.svelte";
@@ -8,6 +9,10 @@ import { currentUser, gameStatus } from "../../services/auth.ts";
 
 let okLogin: boolean = $state(false);
 let gameSession: GameSession | undefined = $state(undefined);
+
+faro.api.setView({
+	name: "auth",
+});
 
 currentUser.subscribe((value) => {
 	okLogin = Boolean(value.id && value.username);

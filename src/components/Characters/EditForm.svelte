@@ -7,6 +7,7 @@ import {
 	editCharacter,
 	getAvatarSource,
 } from "../../models/characters";
+import notyf from "../../services/notyf";
 
 const { onclose, source } = $props();
 
@@ -18,26 +19,44 @@ let avatar: string = $state(
 // biome-ignore lint: username is modified on bind:value
 let custom_avatar: FileList | undefined = $state();
 let avatar_as_b64: string = $state("");
+// biome-ignore lint: saving is used on html
+let saving: boolean = $state(false);
 
-async function save() {
+function save() {
+	saving = true;
 	if (source?.id && source?.userId) {
-		await editCharacter({
+		editCharacter({
 			id: source.id,
 			userId: source.userId,
 			name: username,
 			avatar: avatar === "new-custom" ? "custom" : avatar,
 			avatar_base64:
 				avatar === "new-custom" && avatar_as_b64 ? avatar_as_b64 : undefined,
-		});
+		})
+			.catch((_err) => {
+				notyf.error("La sauvegarde du personnage à echoué");
+				saving = false;
+			})
+			.then((_char) => {
+				saving = false;
+				onclose();
+			});
 	} else {
-		await createCharacter({
+		createCharacter({
 			name: username,
 			avatar: avatar === "new-custom" ? "custom" : avatar,
 			avatar_base64:
 				avatar === "new-custom" && avatar_as_b64 ? avatar_as_b64 : undefined,
-		});
+		})
+			.catch((_err) => {
+				notyf.error("La création du personnage à echoué");
+				saving = false;
+			})
+			.then((_char) => {
+				saving = false;
+				onclose();
+			});
 	}
-	onclose();
 }
 
 function setAvatarImage(avatarImg: string) {
@@ -57,20 +76,23 @@ async function prepareCustomAvatar() {
 			preserveExif: false,
 		});
 		avatar_as_b64 = await imageCompression.getDataUrlFromFile(compressed);
-		console.log(
-			"file as b64 weigth:",
-			avatar_as_b64.length,
-			"| while original is:",
-			file.size,
-			"| ratio is",
-			(file.size / avatar_as_b64.length).toFixed(2),
-			"x smaller",
-		);
+		faro.api.pushLog([
+			`file as b64 weigth: ${avatar_as_b64.length} | while original is: ${file.size} | ratio is ${(file.size / avatar_as_b64.length).toFixed(2)} x smaller`,
+		]);
+		faro.api.pushMeasurement({
+			type: "avatar_compression_tool",
+			values: {
+				original_bytes: file.size,
+				compressed_b64_bytes: avatar_as_b64.length,
+				ratio: file.size / avatar_as_b64.length,
+			},
+		});
 	} catch (err) {
-		console.error(err);
+		// console.error(err);
 		faro.api.pushError(err as Error);
 		avatar_as_b64 = "";
 		custom_avatar = undefined;
+		notyf.error("Echec lors de la compression de l'image, veuillez ré-essayer");
 	}
 }
 </script>
@@ -140,6 +162,10 @@ async function prepareCustomAvatar() {
     <br />
     <button
         class="md:mt-6 py-2 px-4 rounded-lg bg-cactus-600 hover:bg-cactus-700 text-white font-semibold"
-        onclick={save}>Sauvegarder</button
-    >
+        onclick={save}>
+        Sauvegarder
+        {#if saving}
+            <i class="fa fa-spin fa-circle-notch ml-2"></i>
+        {/if}
+    </button>
 </div>

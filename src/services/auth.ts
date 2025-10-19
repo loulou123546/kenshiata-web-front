@@ -85,6 +85,10 @@ export async function receiveTokens(tokens: AuthTokens): Promise<void> {
 				username: payload?.["cognito:username"],
 			}),
 		);
+		faro.api.setUser({
+			id: payload.sub,
+			username: payload?.["cognito:username"] as string | undefined,
+		});
 	}
 }
 
@@ -111,6 +115,7 @@ async function refreshTokens(): Promise<boolean> {
 		}
 		if (data?.error) throw new Error(data.error);
 	} catch (err) {
+		faro.api.pushError(err as Error);
 		console.error(err);
 	}
 	return false;
@@ -260,7 +265,15 @@ async function int_handle_auth_issues(): Promise<authIssue> {
 }
 
 // at start and then every minute
-setTimeout(handle_auth_issues, 10);
+setTimeout(async () => {
+	const action = await handle_auth_issues();
+	if (currentUser.get()?.id && action === "ok") {
+		faro.api.setUser({
+			id: currentUser.get().id,
+			username: currentUser.get().username as string,
+		});
+	}
+}, 10);
 setInterval(handle_auth_issues, 30000);
 
 export async function get_access_token(): Promise<string> {

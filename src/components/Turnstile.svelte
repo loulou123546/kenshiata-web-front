@@ -1,4 +1,6 @@
 <script lang="ts">
+import notyf from "../services/notyf";
+
 const { action, onSuccess, onError } = $props<{
 	action: string;
 	onSuccess: (token: string) => void;
@@ -9,11 +11,19 @@ const TURNSTILE_CLIENT_ID = import.meta.env.PUBLIC_TURNSTILE_SITE;
 
 function transformCallback(event: CustomEvent) {
 	if (typeof event.detail?.token === "string") onSuccess(event.detail?.token);
-	else onError(new Error("Got a successfull callback but without token"));
+	else {
+		onError(new Error("Got a successfull callback but without token"));
+		notyf.error(
+			"Problème lors du contrôle anti-robot, veuillez recharger la page",
+		);
+	}
 }
 function transformError(event: CustomEvent | Event) {
 	// @ts-expect-error detail don't exist on Event
 	onError(event?.detail?.error ?? new Error("Internal error"));
+	notyf.error(
+		"Problème lors du contrôle anti-robot, veuillez recharger la page",
+	);
 }
 
 let loaded: boolean = $state(false);

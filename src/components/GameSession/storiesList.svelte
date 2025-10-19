@@ -5,6 +5,7 @@ import type { GameSession } from "@shared/types/GameSession";
 import type { Stories } from "@shared/types/Story";
 import { z } from "zod";
 import { getGameStories } from "../../models/gameStory";
+import notyf from "../../services/notyf";
 
 const { gameSession } = $props<{
 	gameSession: GameSession;
@@ -14,13 +15,20 @@ let stories: Stories = $state([]);
 const votes: Record<string, GamePlayer[]> = $state({});
 let myvote: string = $state("");
 
+faro.api.setView({
+	name: "story-choice",
+});
+
 getGameStories()
 	.then((data) => {
 		stories = data;
 	})
-	.catch((err) => {
-		faro.api.pushError(err);
-		alert(err);
+	.catch((_err) => {
+		notyf.error({
+			message: "Erreur lors de la récupération des histoires disponibles",
+			duration: 0,
+			dismissible: true,
+		});
 	});
 
 function saveVote(storyId: string, user: GamePlayer) {

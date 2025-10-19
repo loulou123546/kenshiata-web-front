@@ -1,4 +1,5 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
 import type { GamePlayer } from "@shared/types/GamePlayer";
 import {
 	type Storychoice,
@@ -16,6 +17,10 @@ const { gameSession }: { gameSession: GameSession } = $props<{
 let texts: StoryLine[] = $state([]);
 let choices: Storychoice[] = $state([]);
 let votes: GamePlayer[][] = $state([]);
+
+faro.api.setView({
+	name: "game",
+});
 
 function resetPlayerVote(userId: string) {
 	votes = votes.map((players) =>
@@ -40,25 +45,36 @@ gameSession.addListener("game-continue", (raw: unknown) => {
 });
 
 gameSession.addListener("game-choice", (raw: unknown) => {
-	console.log("received game-choice with", raw);
-	console.log(gameSession.players);
 	try {
 		const data = z
 			.object({ userId: z.string(), choiceIndex: z.number() })
 			.parse(raw);
+		faro.api.pushEvent("received game-choice with", {
+			userId: data.userId,
+			choiceIndex: `${data.choiceIndex}`,
+		});
+
 		const player = gameSession.getPlayer(data.userId);
 		if (player) {
 			resetPlayerVote(player.userId);
 			setPlayerVote(player, data.choiceIndex);
 		} else {
-			console.error(
-				`Received vote from player id ${data.userId} but cannot find player in gameSession`,
+			faro.api.pushError(
+				new Error(
+					`Received vote from player id ${data.userId} but cannot find player in gameSession`,
+				),
 			);
+			// console.error(
+			// 	`Received vote from player id ${data.userId} but cannot find player in gameSession`,
+			// );
 		}
 	} catch (err) {
-		console.error(err);
+		faro.api.pushEvent("received game-choice with", {
+			data: JSON.stringify(raw),
+		});
+		faro.api.pushError(err as Error);
+		// console.error(err);
 	}
-	console.log(votes);
 });
 
 function voteForChoice(index: number) {

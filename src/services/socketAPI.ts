@@ -67,6 +67,17 @@ export default class SocketAPI {
 				...data,
 			}),
 		);
+		faro.api.pushEvent(
+			action,
+			Object.fromEntries(
+				Object.entries(data).map(([key, value]) => [
+					key,
+					["string", "number", "boolean"].includes(typeof value)
+						? String(value)
+						: JSON.stringify(value),
+				]),
+			),
+		);
 	}
 
 	public addListener(action: string, callback: (data: unknown) => void) {

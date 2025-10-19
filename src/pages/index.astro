@@ -23,6 +23,9 @@ import Layout from "../layouts/Layout.astro";
   <script>
     import { faro } from "@grafana/faro-web-sdk";
     import { get_id } from "../services/auth.ts";
+    faro.api.setView({
+      name: "homepage",
+    });
 
     get_id().then((user) => {
       if (user) {

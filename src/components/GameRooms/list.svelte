@@ -2,6 +2,7 @@
 import type { GameRoom } from "@shared/types/GameRoom";
 import type { UserIdentity } from "@shared/types/User";
 import { getGameRoomNames } from "../../models/gameRoom";
+import notyf from "../../services/notyf";
 import type SocketAPI from "../../services/socketAPI";
 
 const { socket, rooms } = $props<{
@@ -20,11 +21,15 @@ socket.send("list-game-rooms", {});
 
 async function selectRoom(room: GameRoom) {
 	selectedRoom = room;
-	const infos = await getGameRoomNames(room.hostId);
-	names = {
-		...names,
-		...infos,
-	};
+	try {
+		const infos = await getGameRoomNames(room.hostId);
+		names = {
+			...names,
+			...infos,
+		};
+	} catch {
+		notyf.warning("Echec lors de la récupération des joueurs");
+	}
 }
 
 socket.addListener(

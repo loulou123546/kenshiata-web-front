@@ -1,6 +1,7 @@
 <script lang="ts">
 import { Compiler, type Story } from "inkjs/full";
 import mermaid from "mermaid";
+import notyf from "../../services/notyf";
 
 mermaid.initialize({ startOnLoad: false });
 
@@ -27,10 +28,12 @@ function storyToMermaid(story: Story): string {
 
 async function draw(graph: string) {
 	const el = document.getElementById("mermaid-ref");
-	if (!el) return alert("failed to find div by id to draw graph");
+	if (!el) {
+		notyf.error("failed to find div by id to draw graph");
+		return;
+	}
 	const { svg } = await mermaid.render("graphDiv", graph);
 	el.innerHTML = svg;
-	console.log("drawing ok");
 }
 $effect(() => {
 	draw(storyToMermaid(story));

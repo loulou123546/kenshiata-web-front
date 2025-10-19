@@ -3,6 +3,7 @@ import type { GameRoom } from "@shared/types/GameRoom";
 import type { UserIdentity } from "@shared/types/User";
 import { getGameRoomNames } from "../../models/gameRoom";
 import { gameStatus, type User } from "../../services/auth";
+import notyf from "../../services/notyf";
 import type SocketAPI from "../../services/socketAPI";
 import RequestJoining from "./requestJoining.svelte";
 
@@ -18,12 +19,16 @@ $effect(() => {
 	gameStatus.set("matchmaking");
 });
 
-getGameRoomNames(room.hostId).then((values) => {
-	names = {
-		...names,
-		...values,
-	};
-});
+getGameRoomNames(room.hostId)
+	.then((values) => {
+		names = {
+			...names,
+			...values,
+		};
+	})
+	.catch((_err) => {
+		notyf.warning("Echec lors de l'actualisation des noms des joueurs");
+	});
 
 function leaveRoom() {
 	gameStatus.set("none");

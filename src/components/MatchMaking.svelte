@@ -1,9 +1,11 @@
 <script lang="ts">
+import { faro } from "@grafana/faro-web-sdk";
 import { GameRoom } from "@shared/types/GameRoom";
 import { GameSession as GameSessionModel } from "@shared/types/GameSession";
 import { z } from "zod";
 import { GameSession } from "../models/GameSession";
 import { get_id, type User } from "../services/auth";
+import notyf from "../services/notyf";
 import SocketAPI from "../services/socketAPI";
 import Create from "./GameRooms/create.svelte";
 import InRoom from "./GameRooms/inRoom.svelte";
@@ -13,56 +15,78 @@ const { onJoinSession } = $props<{
 	onJoinSession: (session: GameSession) => void;
 }>();
 
+faro.api.setView({
+	name: "matchmaking",
+});
+
 const socketP: Promise<SocketAPI> = $state(SocketAPI.create());
 let rooms: GameRoom[] = $state([]);
 let me: User | undefined = $state(undefined);
-get_id().then((user) => {
-	me = user;
-});
+get_id()
+	.then((user) => {
+		me = user;
+	})
+	.catch((err) => {
+		faro.api.pushError(err as Error);
+		notyf.error("Vous semblez ne pas être connecté");
+	});
 const currentRoom: GameRoom | undefined = $derived(
 	// @ts-expect-error id can and will exist
 	(me?.id && rooms.find((room) => room.players.includes(me?.id))) || undefined,
 );
 
-socketP.then((socket) => {
-	socket.addListener("update-game-rooms", (data: unknown) => {
-		const { updateRooms, removedRooms } = z
-			.object({
-				updateRooms: z.array(GameRoom).optional(),
-				removedRooms: z.array(z.string()).optional(),
-			})
-			.parse(data);
-		rooms = [
-			...rooms.filter(
-				(room) =>
-					!updateRooms?.some((r) => r.hostId === room.hostId) &&
-					!removedRooms?.includes(room.hostId),
-			),
-			...(updateRooms ?? []),
-		];
-	});
-
-	socket.addListener("start-game", (data: unknown) => {
-		if (!me) return;
-		const sessionInfo = GameSessionModel.extend({
-			hostId: z.string(),
-		}).parse(data);
-
-		if (sessionInfo.hostId === currentRoom?.hostId) {
-			const session = new GameSession(socket, sessionInfo, me.id);
-			onJoinSession(session);
-		} else if (currentRoom === undefined) {
-			if (
-				confirm(
-					`Voulez-vous rejoindre maintenant la session de jeu ${sessionInfo.name} ?`,
-				)
-			) {
-				const session = new GameSession(socket, sessionInfo, me.id);
-				onJoinSession(session);
+socketP
+	.then((socket) => {
+		socket.addListener("update-game-rooms", (data: unknown) => {
+			try {
+				const { updateRooms, removedRooms } = z
+					.object({
+						updateRooms: z.array(GameRoom).optional(),
+						removedRooms: z.array(z.string()).optional(),
+					})
+					.parse(data);
+				rooms = [
+					...rooms.filter(
+						(room) =>
+							!updateRooms?.some((r) => r.hostId === room.hostId) &&
+							!removedRooms?.includes(room.hostId),
+					),
+					...(updateRooms ?? []),
+				];
+			} catch (err) {
+				faro.api.pushError(err as Error);
+				notyf.warning("Echec de la mise à jour de la liste des parties");
 			}
-		}
+		});
+
+		socket.addListener("start-game", (data: unknown) => {
+			try {
+				if (!me) return;
+				const sessionInfo = GameSessionModel.extend({
+					hostId: z.string(),
+				}).parse(data);
+
+				if (sessionInfo.hostId === currentRoom?.hostId) {
+					const session = new GameSession(socket, sessionInfo, me.id);
+					onJoinSession(session);
+				} else if (currentRoom === undefined) {
+					if (
+						confirm(
+							`Voulez-vous rejoindre maintenant la session de jeu ${sessionInfo.name} ?`,
+						)
+					) {
+						const session = new GameSession(socket, sessionInfo, me.id);
+						onJoinSession(session);
+					}
+				}
+			} catch (err) {
+				faro.api.pushError(err as Error);
+			}
+		});
+	})
+	.catch((_err) => {
+		notyf.error("Erreur lors de la connexion au serveur websocket");
 	});
-});
 </script>
 
 <div class="w-full py-4 md:p-4">

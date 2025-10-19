@@ -1,11 +1,10 @@
 // @ts-check
-import { defineConfig } from "astro/config";
 
 import svelte from "@astrojs/svelte";
 import faroUploader from "@grafana/faro-rollup-plugin";
-import tsconfigPaths from "vite-tsconfig-paths";
-
 import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "astro/config";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://astro.build/config
 export default defineConfig({

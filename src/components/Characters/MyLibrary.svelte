@@ -2,6 +2,7 @@
 import { faro } from "@grafana/faro-web-sdk";
 import type { Character } from "@shared/types/Character";
 import { listCharacters } from "../../models/characters";
+import notyf from "../../services/notyf";
 import SmallPlayerCard from "../SmallPlayerCard.svelte";
 import EditForm from "./EditForm.svelte";
 
@@ -9,8 +10,8 @@ import EditForm from "./EditForm.svelte";
 let loading: Promise<Character[]> = $state(listCharacters());
 
 $effect(() => {
-	loading.catch((err) => {
-		faro.api.pushError(err);
+	loading.catch((_err) => {
+		notyf.error("Erreur lors du chargement des personnages");
 	});
 });
 // biome-ignore lint: username is modified on bind:value
@@ -50,7 +51,7 @@ function toogleReduce() {
         />
     {:else if !reduce}
         {#await loading}
-            <div class="text-brown-800 md:text-lg">Chargement des personnages...</div>
+            <div class="text-brown-800 md:text-lg">Chargement des personnages <i class="fa fa-spin fa-circle-notch ml-2"></i></div>
         {:then characters}
             <div class="flex flex-col md:flex-row items-center justify-center w-full gap-2 md:gap-x-8 md:gap-y-4">
                 {#each characters as character}
