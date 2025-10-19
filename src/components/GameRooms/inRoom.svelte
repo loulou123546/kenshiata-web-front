@@ -94,6 +94,9 @@ async function shareWithFriends() {
             onclick={startGame}>Lancer la partie</button
         >
     {:else}
+        <button class="bg-cactus-700 text-white hover:bg-cactus-800 px-4 py-2 rounded-lg" onclick={shareWithFriends}>
+            Inviter des amis <i class="fa fa-share-from-square ml-1"></i>
+        </button>
         <button
             class="bg-red-700 text-white hover:bg-red-800 py-2 px-4 rounded-lg"
             onclick={leaveRoom}>Quitter la session de jeu</button
