@@ -41,19 +41,21 @@ function setLoaded() {
     ></script>
     {#if loaded}
         <script>
-            const turnstile_container = document.querySelector("#turnstile-container")
-            const widgetId = turnstile.render("#turnstile-container", {
-                sitekey: turnstile_container.dataset.site,
-                size: "flexible",
-                theme: "light",
-                action: turnstile_container.dataset.action,
-                callback: function (token) {
-                    turnstile_container.dispatchEvent(new CustomEvent('customcallback', {detail: {token}}))
-                },
-                "error-callback": function (error) {
-                    turnstile_container.dispatchEvent(new CustomEvent('error', {detail: {error}}))
-                }
-            });
+            (() => {
+                const turnstile_container = document.querySelector("#turnstile-container")
+                const widgetId = turnstile.render("#turnstile-container", {
+                    sitekey: turnstile_container.dataset.site,
+                    size: "flexible",
+                    theme: "light",
+                    action: turnstile_container.dataset.action,
+                    callback: function (token) {
+                        turnstile_container.dispatchEvent(new CustomEvent('customcallback', {detail: {token}}))
+                    },
+                    "error-callback": function (error) {
+                        turnstile_container.dispatchEvent(new CustomEvent('error', {detail: {error}}))
+                    }
+                });
+            })()
         </script>
     {/if}
 </div>

@@ -14,7 +14,10 @@ let username: string = $state("");
 let password: string = $state("");
 // biome-ignore lint/style/useConst: used in svelte file
 let email: string = $state("");
+// biome-ignore lint/style/useConst: used in svelte file
+let consent_email: string[] = $state([]);
 let turnstile_token: string = $state("");
+let uniqueKey_reloadTurnstile = $state({});
 
 let confirm_via: string = $state("");
 let confirm_to: string = $state("");
@@ -24,6 +27,7 @@ let session: string = $state("");
 let pending_api: boolean = $state(false);
 
 function successTurnstile(token: string) {
+	faro.api.pushEvent("Obtained new token from turnstile auth");
 	turnstile_token = token;
 }
 
@@ -62,6 +66,7 @@ async function InitSignUp() {
 					username,
 					password,
 					email,
+					consent_email,
 					turnstileToken: turnstile_token,
 				}),
 			},
@@ -90,6 +95,7 @@ async function InitSignUp() {
 		console.error(err);
 	}
 	pending_api = false;
+	uniqueKey_reloadTurnstile = {};
 }
 
 async function ConfirmSignUp() {
@@ -167,7 +173,7 @@ async function ConfirmSignUp() {
             <p class="mt-1 text-gray-600 text-sm">Ce nom sera utilisé pour vous identifier de manière unique.
                 Vous pourrez ensuite créer autant de personnages jouable que vous le souhaitez.</p>
         </div>
-        <div class="mb-4">
+        <div class="mb-2">
             <label
                 for="email"
                 class="block text-sm font-medium font-semibold text-gray-800 mb-2"
@@ -183,6 +189,34 @@ async function ConfirmSignUp() {
                 autocomplete="email"
             />
             <p class="mt-1 text-gray-600 text-sm">Un code de validation sera envoyé sur cette adresse email afin de valider votre compte.</p>
+        </div>
+        <div class="mb-2">
+            <input
+                id="consent_email_newsletter"
+                type="checkbox"
+                class="p-2 bg-gray-100"
+				value="newsletter"
+                bind:group={consent_email}
+            />
+            <label
+                for="consent_email_newsletter"
+                class="text-gray-800"
+                >Je souhaite recevoir des emails concernant la sortie du jeu <span class="text-sm text-gray-700">(entre 2 et 4 mails par an) [optionnel]</span></label
+            >
+        </div>
+        <div class="mb-4">
+            <input
+                id="consent_email_beta_contact"
+                type="checkbox"
+                class="p-2 bg-gray-100"
+				value="beta_contact"
+                bind:group={consent_email}
+            />
+            <label
+                for="consent_email_beta_contact"
+                class="text-gray-800"
+                >J'accepte d'être contacté par email afin de donner mon avis sur la bêta du jeu <span class="text-sm text-gray-700">(un email dans les prochaines semaines) [optionnel]</span></label
+            >
         </div>
         <div class="mb-4">
             <label
@@ -201,7 +235,9 @@ async function ConfirmSignUp() {
             />
             <p class="mt-1 text-gray-600 text-sm">Au minimum 8 caractères. Doit inclure au moins une majuscule, une minuscule, un chiffre et un caractère spécial.</p>
         </div>
-        <Turnstile action="signup" onSuccess={successTurnstile} onError={console.error}></Turnstile>
+		{#key uniqueKey_reloadTurnstile}
+        	<Turnstile action="signup" onSuccess={successTurnstile} onError={console.error}></Turnstile>
+		{/key}
         <div class="w-full text-center mt-2 text-white">
             <button
                 class={[
