@@ -18,25 +18,14 @@ $effect(() => {
 let editing: Character | {} | undefined = $state(undefined);
 // biome-ignore lint: username is modified on bind:value
 let selected: Character | undefined = $state(undefined);
-
-let reduce: boolean = $state(false);
-
-function toogleReduce() {
-	reduce = !reduce;
-}
 </script>
 
 <div
-    class={[
-        "w-full rounded-b-xl bg-sand-400/70 shadow-lg flex flex-col flex-wrap items-center justify-center",
-        reduce ? "pt-2" : "p-4 md:p-8"
-    ]}
+    class="w-full rounded-b-xl bg-sand-400/70 shadow-lg flex flex-col flex-wrap items-center justify-center p-4 md:p-8"
 >
-    <button class="text-lg md:text-2xl text-center text-brown-900 font-semibold pb-2 md:pb-4" onclick={toogleReduce}>Ma Bibliothèque <span class="hidden xs:inline">de personnages</span>
-        {#if reduce}
-            <i class="fa fa-chevron-down"></i>
-        {/if}
-    </button>
+    <div class="text-lg md:text-2xl text-center text-brown-900 font-semibold pb-2 md:pb-4">
+        Ma Bibliothèque <span class="hidden xs:inline">de personnages</span>
+    </div>
 
     {#if editing}
         <EditForm
@@ -49,7 +38,7 @@ function toogleReduce() {
                 });
             }}
         />
-    {:else if !reduce}
+    {:else}
         {#await loading}
             <div class="text-brown-800 md:text-lg">Chargement des personnages <i class="fa fa-spin fa-circle-notch ml-2"></i></div>
         {:then characters}
@@ -77,11 +66,6 @@ function toogleReduce() {
                         editing = {};
                     }}
                 />
-                <button class="md:hidden text-sm text-brown-800/70" onclick={toogleReduce}>
-                    <i class="fa fa-chevron-up"></i>
-                    <span class="underline">Cacher la liste</span>
-                    <i class="fa fa-chevron-up"></i>
-                </button>
             </div>
         {:catch error}
             <div class="text-red-500">

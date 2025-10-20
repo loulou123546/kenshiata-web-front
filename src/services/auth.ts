@@ -92,6 +92,12 @@ export async function receiveTokens(tokens: AuthTokens): Promise<void> {
 	}
 }
 
+export function disconnect() {
+	currentUser.set({} as User);
+	authTokens.set({});
+	gameStatus.set("none");
+}
+
 async function refreshTokens(): Promise<boolean> {
 	const token = authTokens.get()?.refresh_token;
 	if (!token) return false;
@@ -218,8 +224,7 @@ async function int_handle_auth_issues(): Promise<authIssue> {
 		return action;
 	}
 	if (action === "auth_now") {
-		currentUser.set({} as User);
-		authTokens.set({});
+		disconnect();
 		FAILED_REFRESH = 0;
 		return action;
 	}
@@ -232,8 +237,7 @@ async function int_handle_auth_issues(): Promise<authIssue> {
 		});
 		if (!success) {
 			if (FAILED_REFRESH >= 3) {
-				currentUser.set({} as User);
-				authTokens.set({});
+				disconnect();
 				return "auth_now";
 			} else {
 				FAILED_REFRESH += 1;
@@ -259,8 +263,7 @@ async function int_handle_auth_issues(): Promise<authIssue> {
 			notyf.warning(
 				"Votre connexion expire bientôt, veuillez-vous reconnecter avant de jouer",
 			);
-			currentUser.set({} as User);
-			authTokens.set({});
+			disconnect();
 			FAILED_REFRESH = 0;
 			return "auth_now";
 		}

@@ -35,4 +35,25 @@
 	--color-notif-red: hsl(15 100% 40%);
 
 	--breakpoint-xs: 30rem;
+
+	--animate-achievement: achievement 10s ease-in-out 1;
+
+	@keyframes achievement {
+		0%,
+		100% {
+			transform: translateX(100%);
+		}
+		10% {
+			transform: translateX(-5%);
+		}
+		12% {
+			transform: none;
+		}
+		90% {
+			transform: none;
+		}
+		92% {
+			transform: translateX(-5%);
+		}
+	}
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { faro } from "@grafana/faro-web-sdk";
+import { Achievement } from "@shared/types/Achievement";
 import type { GamePlayer } from "@shared/types/GamePlayer";
 import {
 	type Storychoice,
@@ -7,6 +8,7 @@ import {
 	StorySituation,
 } from "@shared/types/InkStory";
 import { z } from "zod";
+import AchivementNotyf from "../../components/Achievements/Achievement.svelte";
 import { getAvatarSource } from "../../models/characters";
 import type { GameSession } from "../../models/GameSession";
 
@@ -17,6 +19,7 @@ const { gameSession }: { gameSession: GameSession } = $props<{
 let texts: StoryLine[] = $state([]);
 let choices: Storychoice[] = $state([]);
 let votes: GamePlayer[][] = $state([]);
+const render_achievements: Achievement[] = $state([]);
 
 faro.api.setView({
 	name: "game",
@@ -77,6 +80,26 @@ gameSession.addListener("game-choice", (raw: unknown) => {
 	}
 });
 
+function loop_over_achievements() {
+	render_achievements.pop();
+	if (render_achievements.length >= 1) {
+		setTimeout(loop_over_achievements, 12000);
+	}
+}
+
+gameSession.addListener("earn-achievements", (raw: unknown) => {
+	const achievements = z
+		.object({ achievements: z.array(Achievement) })
+		.parse(raw).achievements;
+	achievements.forEach((ach) => {
+		if (render_achievements.length < 1) {
+			// setup loop if it's first item in array
+			setTimeout(loop_over_achievements, 12000);
+		}
+		render_achievements.push(ach);
+	});
+});
+
 function voteForChoice(index: number) {
 	const me = gameSession.getMyPlayer();
 	if (me === undefined) return;
@@ -124,4 +147,8 @@ function voteForChoice(index: number) {
             </button>
         {/each}
     </div>
+
+	{#if render_achievements.length >= 1}
+		<AchivementNotyf title={render_achievements[0].title} description={render_achievements[0].description} disabled={false} notyf={true} />
+	{/if}
 </div>
