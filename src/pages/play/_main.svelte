@@ -1,14 +1,18 @@
 <script lang="ts">
 import { faro } from "@grafana/faro-web-sdk";
+import MyAchievements from "../../components/Achievements/MyAchievements.svelte";
 import CharacterLibrary from "../../components/Characters/MyLibrary.svelte";
 import GameSessionPage from "../../components/GameSession/index.svelte";
 import LoginSignup from "../../components/Login-Signup/index.svelte";
 import MatchMaking from "../../components/MatchMaking.svelte";
+import NavigationBar from "../../components/NavigationBar.svelte";
 import type { GameSession } from "../../models/GameSession.ts";
 import { currentUser, gameStatus } from "../../services/auth.ts";
 
 let okLogin: boolean = $state(false);
 let gameSession: GameSession | undefined = $state(undefined);
+// biome-ignore lint/style/useConst: used and modified by component
+let panel: string = $state("close");
 
 faro.api.setView({
 	name: "auth",
@@ -28,7 +32,12 @@ function onJoinSession(session: GameSession) {
     {#if !okLogin}
         <LoginSignup />
     {:else}
-        <CharacterLibrary />
+        <NavigationBar setPanel={(name: string) => {panel = name}} />
+        {#if panel === "characters"}
+            <CharacterLibrary />
+        {:else if panel === "achievements"}
+            <MyAchievements />
+        {/if}
         <section class="p-2 xs:p-8">
             {#if gameSession}
                 <!-- <h1>
