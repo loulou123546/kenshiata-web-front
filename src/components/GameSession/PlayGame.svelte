@@ -9,6 +9,7 @@ import {
 } from "@shared/types/InkStory";
 import { z } from "zod";
 import AchivementNotyf from "../../components/Achievements/Achievement.svelte";
+import { myAchievements } from "../../models/Achievements";
 import { getAvatarSource } from "../../models/characters";
 import type { GameSession } from "../../models/GameSession";
 
@@ -97,6 +98,18 @@ gameSession.addListener("earn-achievements", (raw: unknown) => {
 			setTimeout(loop_over_achievements, 12000);
 		}
 		render_achievements.push(ach);
+		myAchievements.set([
+			...$myAchievements,
+			{
+				userId: gameSession.myUserId,
+				storyId: ach.storyId,
+				achievementId: ach.id,
+				title: ach.title,
+				description: ach.description,
+				public: ach.public,
+				firstEarned: new Date().toISOString(),
+			},
+		]);
 	});
 });
 

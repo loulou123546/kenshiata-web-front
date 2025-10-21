@@ -1,5 +1,31 @@
 <script lang="ts">
-import Achievement from "./Achievement.svelte";
+import type { Achievement } from "@shared/types/Achievement";
+import {
+	getMyAchievements,
+	getStoryAchievements,
+	myAchievements,
+} from "../../models/Achievements";
+import notyf from "../../services/notyf";
+import AchievementRender from "./Achievement.svelte";
+
+const storyToShow = "0199435c-250a-74e9-b7e5-b937fde0fd78";
+let storyPublicAchivements: Achievement[] = $state([]);
+
+getMyAchievements()
+	.then((res) => {
+		$myAchievements = res;
+	})
+	.catch((_err) => {
+		notyf.error("Erreur lors du chargements de vos succès obtenus");
+	});
+
+getStoryAchievements(storyToShow)
+	.then((res) => {
+		storyPublicAchivements = res;
+	})
+	.catch((_err) => {
+		notyf.error("Erreur lors du chargements des succès disponibles");
+	});
 </script>
 
 <div
@@ -9,7 +35,16 @@ import Achievement from "./Achievement.svelte";
         Mes succès
     </div>
     <div class="flex flex-col gap-2">
-        <Achievement title="Haut les pattes !" description="Se faire attraper par le shérif après le braquage" disabled={false} notyf={false} />
-        <Achievement title="Succès bloqué" description="Ce succès est caché, vous ne pouvez pas le voir avant de l'obtenir" disabled={true} notyf={false} />
+        {#each $myAchievements as achievement}
+            <AchievementRender title={achievement.title} description={achievement.description} disabled={false} notyf={false} />
+        {/each}
+        {#each storyPublicAchivements as achievement}
+            {#if !$myAchievements.some((el) => el.achievementId === achievement.id)}
+                <AchievementRender title={achievement.title} description={achievement.description} disabled={true} notyf={false} />
+            {/if}
+        {/each}
+        {#if $myAchievements.length < 1 && storyPublicAchivements.length < 1}
+            <p>Chargement en cours <i class="fa fa-circle-notch fa-spin"></i></p>
+        {/if}
     </div>
 </div>
