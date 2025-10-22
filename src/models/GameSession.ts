@@ -3,7 +3,10 @@ import type { GamePlayer } from "@shared/types/GamePlayer";
 import {
 	type GameSessionData,
 	GameSession as GameSessionModel,
+	UserGameSession,
 } from "@shared/types/GameSession";
+import { z } from "zod";
+import { get_access_token } from "../services/auth";
 import type SocketAPI from "../services/socketAPI";
 
 export class GameSession {
@@ -13,8 +16,14 @@ export class GameSession {
 	myUserId: string;
 	name = "";
 	data: GameSessionData = {};
+	already_running: boolean = false;
 
-	constructor(socket: SocketAPI, data: GameSessionModel, myUserId: string) {
+	constructor(
+		socket: SocketAPI,
+		data: GameSessionModel,
+		myUserId: string,
+		already_running: boolean = false,
+	) {
 		const info = GameSessionModel.parse(data);
 		this.socket = socket;
 		this.sessionId = info.id;
@@ -22,6 +31,7 @@ export class GameSession {
 		this.myUserId = myUserId;
 		this.name = info.name;
 		this.data = info.data || {};
+		this.already_running = already_running || false;
 		faro.api.pushEvent("game session instanciated", {
 			sessionId: this.sessionId,
 			name: this.name,
@@ -73,5 +83,32 @@ export class GameSession {
 
 	public close() {
 		this.socket.close();
+	}
+}
+
+export async function getMyGameSessions(): Promise<UserGameSession[]> {
+	try {
+		const response = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/users/me/game-sessions`,
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${await get_access_token()}`,
+				},
+				mode: "cors",
+			},
+		);
+		if (!response.ok) {
+			throw new Error(
+				`Failed to fetch self game sessions : ${response.statusText}`,
+			);
+		}
+		const data = await response.json();
+		return z.array(UserGameSession).parse(data?.data);
+	} catch (err) {
+		faro.api.pushError(err as Error);
+		console.error(err);
+		throw err;
 	}
 }

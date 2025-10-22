@@ -11,8 +11,9 @@ import Create from "./GameRooms/create.svelte";
 import InRoom from "./GameRooms/inRoom.svelte";
 import List from "./GameRooms/list.svelte";
 
-const { onJoinSession } = $props<{
+const { onJoinSession, onSocketReady } = $props<{
 	onJoinSession: (session: GameSession) => void;
+	onSocketReady: (socket: SocketAPI) => void;
 }>();
 
 faro.api.setView({
@@ -83,6 +84,25 @@ socketP
 				faro.api.pushError(err as Error);
 			}
 		});
+
+		socket.addListener("join-running-game", (data: unknown) => {
+			try {
+				if (!me) return;
+				const session = z
+					.object({ session: GameSessionModel })
+					.parse(data).session;
+				if (!session.players.some((pl) => pl.userId === me?.id)) {
+					notyf.error("La tentative de rejoindre une partie en cours à echoué");
+				}
+
+				const instance = new GameSession(socket, session, me.id, true);
+				onJoinSession(instance);
+			} catch (err) {
+				faro.api.pushError(err as Error);
+			}
+		});
+
+		onSocketReady(socket);
 	})
 	.catch((_err) => {
 		notyf.error("Erreur lors de la connexion au serveur websocket");

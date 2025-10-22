@@ -1,13 +1,13 @@
 <script lang="ts">
 import { faro } from "@grafana/faro-web-sdk";
 import type { GamePlayer } from "@shared/types/GamePlayer";
-import type { GameSession } from "@shared/types/GameSession";
 import type { Stories } from "@shared/types/Story";
 import { z } from "zod";
+import type { GameSession } from "../../models/GameSession";
 import { getGameStories } from "../../models/gameStory";
 import notyf from "../../services/notyf";
 
-const { gameSession } = $props<{
+const { gameSession }: { gameSession: GameSession } = $props<{
 	gameSession: GameSession;
 }>();
 
@@ -49,7 +49,7 @@ gameSession.addListener("vote-story", (data: unknown) => {
 		.object({ userId: z.string(), storyId: z.string() })
 		.parse(data);
 	const target = gameSession.getPlayer(userId);
-	saveVote(storyId, target);
+	if (target) saveVote(storyId, target);
 });
 
 function vote(storyId: string) {
