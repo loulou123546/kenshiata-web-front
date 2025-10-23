@@ -38,6 +38,9 @@ setPanel(menu_opened ? last_opened_menu : "close");
     <button class="p-1" aria-label="Accès au succès / achievements" onclick={() => {openTab("achievements")}}>
         <i class="fa fa-trophy fa-lg"></i>
     </button>
+    <button class="p-1" aria-label="Accès aux parties précédantes" onclick={() => {openTab("saves")}}>
+        <i class="fa fa-floppy-disk fa-lg"></i>
+    </button>
     <button class="p-1" aria-label="Se déconnecter" onclick={() => {openTab("disconnect")}}>
         <i class="fa fa-right-from-bracket fa-lg"></i>
     </button>
