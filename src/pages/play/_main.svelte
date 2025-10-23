@@ -45,7 +45,7 @@ function onSocketReady(sok: SocketAPI) {
         {:else if panel === "achievements"}
             <MyAchievements />
         {:else if panel === "saves"}
-            <PreviousSaves {socket} />
+            <PreviousSaves {socket} inSession={gameSession !== undefined} />
         {/if}
         <section class="p-2 xs:p-8">
             {#if gameSession}

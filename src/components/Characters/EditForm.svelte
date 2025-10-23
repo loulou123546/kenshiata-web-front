@@ -128,12 +128,12 @@ async function prepareCustomAvatar() {
                 />
             </button>
         {/each}
-        {#if source?.avatar === "custom"}
-            <button onclick={() => setAvatarImage("custom")}>
+        {#if source?.avatar?.startsWith("custom:")}
+            <button onclick={() => setAvatarImage(source.avatar)}>
                 <img
                     class={[
                         "w-16 h-16 md:w-24 md:h-24 rounded-full m-2 cursor-pointer",
-                        avatar === "custom" && "border-4 border-cactus-600",
+                        avatar?.startsWith("custom:") && "border-4 border-cactus-600",
                     ]}
                     src={getAvatarSource(source)}
                     alt="Avatar custom"

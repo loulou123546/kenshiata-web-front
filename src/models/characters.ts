@@ -20,10 +20,10 @@ export function getAvatarSource(
 ): string {
 	if (!avatar) return "/avatar/add.png";
 	const avatar_name = typeof avatar === "string" ? avatar : avatar.avatar;
-	if (avatar_name === "custom" && typeof avatar === "object") {
+	if (avatar_name.startsWith("custom:") && typeof avatar === "object") {
 		if (import.meta.env?.PUBLIC_FRONT_DOMAIN?.startsWith("http://localhost"))
-			return `https://kenshiata.studio/public/avatars/${avatar.userId}:${avatar.id}`;
-		return `/public/avatars/${avatar.userId}:${avatar.id}`;
+			return `https://kenshiata.studio/public/avatars/${avatar.userId}:${avatar.id}:${avatar_name.split(":")[1]}`;
+		return `/public/avatars/${avatar.userId}:${avatar.id}:${avatar_name.split(":")[1]}`;
 	}
 	return `/avatar/${avatar_name}`;
 }
