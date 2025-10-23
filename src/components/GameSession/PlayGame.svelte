@@ -1,7 +1,7 @@
 <script lang="ts">
 import { faro } from "@grafana/faro-web-sdk";
 import { Achievement } from "@shared/types/Achievement";
-import type { GamePlayer } from "@shared/types/GamePlayer";
+import { GamePlayer } from "@shared/types/GamePlayer";
 import {
 	type Storychoice,
 	type StoryLine,
@@ -12,6 +12,7 @@ import AchivementNotyf from "../../components/Achievements/Achievement.svelte";
 import { myAchievements } from "../../models/Achievements";
 import { getAvatarSource } from "../../models/characters";
 import type { GameSession } from "../../models/GameSession";
+import notyf from "../../services/notyf";
 
 const { gameSession }: { gameSession: GameSession } = $props<{
 	gameSession: GameSession;
@@ -45,6 +46,30 @@ gameSession.addListener("game-continue", (raw: unknown) => {
 	votes = [];
 	for (let i = 0; i < choices.length; i++) {
 		votes[i] = [];
+	}
+});
+
+gameSession.addListener("update-player", (raw: unknown) => {
+	try {
+		const player = z.object({ player: GamePlayer }).parse(raw).player;
+		gameSession.setPlayer(player);
+	} catch (err) {
+		faro.api.pushError(err as Error);
+	}
+});
+
+gameSession.addListener("player-join-left", (raw: unknown) => {
+	try {
+		const data = z.object({ join: z.boolean(), name: z.string() }).parse(raw);
+		if (data.join) notyf.info(`Le joueur ${data.name} à rejoint la partie`);
+		else
+			notyf.warning({
+				message: `Le joueur ${data.name} à quitter la partie, le jeu est en pause en attendant son retour`,
+				duration: 10000,
+				dismissible: true,
+			});
+	} catch (err) {
+		faro.api.pushError(err as Error);
 	}
 });
 

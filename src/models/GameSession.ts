@@ -112,3 +112,29 @@ export async function getMyGameSessions(): Promise<UserGameSession[]> {
 		throw err;
 	}
 }
+
+export async function deletePreviousGameSession(
+	sessionId: string,
+): Promise<void> {
+	try {
+		const response = await fetch(
+			`${import.meta.env.PUBLIC_API_DOMAIN}/users/me/game-sessions/${encodeURIComponent(sessionId)}`,
+			{
+				method: "DELETE",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${await get_access_token()}`,
+				},
+				mode: "cors",
+			},
+		);
+		if (!response.ok) {
+			throw new Error(
+				`Failed to delete previous game session : ${response.status} ${response.statusText}`,
+			);
+		}
+	} catch (err) {
+		faro.api.pushError(err as Error);
+		throw err;
+	}
+}

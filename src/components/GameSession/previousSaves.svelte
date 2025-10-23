@@ -1,6 +1,9 @@
 <script lang="ts">
 import type { UserGameSession } from "@shared/types/GameSession";
-import { getMyGameSessions } from "../../models/GameSession";
+import {
+	deletePreviousGameSession,
+	getMyGameSessions,
+} from "../../models/GameSession";
 import notyf from "../../services/notyf";
 import type SocketAPI from "../../services/socketAPI";
 
@@ -34,6 +37,22 @@ async function join(sessionId: string) {
 		loading = undefined;
 	}, 10000);
 }
+
+function remove(sessionId: string) {
+	loading = "__delete";
+	deletePreviousGameSession(sessionId)
+		.then(() => {
+			previously = previously.filter(
+				(session) => session.sessionId !== sessionId,
+			);
+		})
+		.catch((_err) => {
+			notyf.error("Echec de suppression de la partie précédante");
+		})
+		.finally(() => {
+			loading = undefined;
+		});
+}
 </script>
 
 <div
@@ -45,7 +64,14 @@ async function join(sessionId: string) {
     <ul class="w-full max-w-[640px] flex flex-col gap-1">
         {#each previously as session}
             <li class="w-full flex flex-row bg-gray-100/60 gap-2 px-2 py-1 rounded-lg items-center">
-                <button aria-label="delete this game from your saved games" class="bg-red-700 hover:bg-red-800 px-2 py-1 rounded-lg text-white"><i class="fa fa-trash"></i></button>
+                <button
+                    aria-label="delete this game from your saved games"
+                    class="bg-red-700 hover:bg-red-800 px-2 py-1 rounded-lg text-white"
+                    disabled={loading !== undefined}
+                    onclick={() => {remove(session.sessionId)}}
+                >
+                    <i class="fa fa-trash"></i>
+                </button>
                 <div class="flex-none text-gray-700">[{new Date(session.last_joined).toLocaleString(undefined, {month: 'short', day: "2-digit", hour: "numeric", minute: "numeric"})}]</div>
                 <div class="grow font-semibold text-center">{session.sessionName}</div>
                 <button
