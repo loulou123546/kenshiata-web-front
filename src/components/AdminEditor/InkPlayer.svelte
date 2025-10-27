@@ -11,22 +11,24 @@ const { value = "", class: className = "" }: Props = $props();
 
 let texts: string[] = $state([]);
 let choices: { text: string; index: number }[] = $state([]);
+let story: Story | undefined = $state(undefined);
 let errors: { message: string; type: number }[] = $state([]);
 let show_warnings: boolean = $state(false);
 
-const story: Story | { message: string; type: number }[] = $derived.by(() => {
+$effect(() => {
 	errors = [];
 	try {
-		return new Compiler(value, {
+		const compiled = new Compiler(value, {
 			errorHandler: (message: string, type: number) => {
 				errors.push({ message, type });
 			},
 		}).Compile();
+		story = compiled;
 	} catch (err) {
 		if (errors.length < 1) {
 			errors.push({ message: `${err?.name}: ${err?.message}`, type: -1 });
 		}
-		return errors;
+		story = undefined;
 	}
 });
 
@@ -74,11 +76,7 @@ $effect(() => {
     </div>
 
     <div class="p-4 w-full">
-		{#if Array.isArray(story)}
-			{#each story as error}
-				<p class="py-2 px-4">{error.message}</p>
-			{/each}
-		{:else if show_warnings}
+		{#if (show_warnings && errors.length >= 1) || !story}
 			{#each errors as error}
 				<p class="py-2 px-4">{error.message}</p>
 			{/each}
