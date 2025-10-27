@@ -11,9 +11,11 @@ const { value = "", class: className = "" }: Props = $props();
 
 let texts: string[] = $state([]);
 let choices: { text: string; index: number }[] = $state([]);
+let errors: { message: string; type: number }[] = $state([]);
+let show_warnings: boolean = $state(false);
 
 const story: Story | { message: string; type: number }[] = $derived.by(() => {
-	const errors: { message: string; type: number }[] = [];
+	errors = [];
 	try {
 		return new Compiler(value, {
 			errorHandler: (message: string, type: number) => {
@@ -51,6 +53,10 @@ function reset() {
 	playScript();
 }
 
+function toggleWarnings() {
+	show_warnings = !show_warnings;
+}
+
 $effect(() => {
 	if (value)
 		// track ink text change
@@ -61,14 +67,19 @@ $effect(() => {
 <div class={`flex flex-col ${className}`}>
     <div class="w-full bg-gray-100 flex flex-row p-2">
         <button onclick={reset} class="bg-gray-300 hover:bg-gray-400 py-2 px-4 rounded-lg">Reset</button>
-		{#if Array.isArray(story)}
-			<p class="py-2 px-4">There are {story.length} errors / warnings</p>
+		{#if errors.length >= 1}
+			<p class="py-2 px-4">There are {errors.length} errors / warnings</p>
 		{/if}
+        <button onclick={toggleWarnings} class="bg-gray-300 hover:bg-gray-400 py-2 px-4 rounded-lg">{show_warnings ? "Hide warnings" : "Show warnings"}</button>
     </div>
 
     <div class="p-4 w-full">
 		{#if Array.isArray(story)}
 			{#each story as error}
+				<p class="py-2 px-4">{error.message}</p>
+			{/each}
+		{:else if show_warnings}
+			{#each errors as error}
 				<p class="py-2 px-4">{error.message}</p>
 			{/each}
 		{:else}
