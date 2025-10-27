@@ -16,19 +16,27 @@ let errors: { message: string; type: number }[] = $state([]);
 let show_warnings: boolean = $state(false);
 
 $effect(() => {
-	errors = [];
+	untrack(() => {
+		errors = [];
+	});
 	try {
 		const compiled = new Compiler(value, {
 			errorHandler: (message: string, type: number) => {
-				errors.push({ message, type });
+				untrack(() => {
+					errors.push({ message, type });
+				});
 			},
 		}).Compile();
-		story = compiled;
+		untrack(() => {
+			story = compiled;
+		});
 	} catch (err) {
-		if (errors.length < 1) {
-			errors.push({ message: `${err?.name}: ${err?.message}`, type: -1 });
-		}
-		story = undefined;
+		untrack(() => {
+			if (errors.length < 1) {
+				errors.push({ message: `${err?.name}: ${err?.message}`, type: -1 });
+			}
+			story = undefined;
+		});
 	}
 });
 
