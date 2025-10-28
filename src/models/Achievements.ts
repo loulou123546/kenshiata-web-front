@@ -21,7 +21,7 @@ export async function getMyAchievements(): Promise<PlayerAchievement[]> {
 		);
 		if (!response.ok) {
 			throw new Error(
-				`Failed to fetch self achievements : ${response.statusText}`,
+				`Failed to fetch self achievements : ${response.status} ${response.statusText}`,
 			);
 		}
 		const data = await response.json();
