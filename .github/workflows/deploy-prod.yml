@@ -51,6 +51,7 @@ jobs:
           PUBLIC_COGNITO_ISSUER: "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Fzpf4i9XY"
           PUBLIC_COGNITO_JWKS: "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Fzpf4i9XY/.well-known/jwks.json"
           PUBLIC_COGNITO_CLIENT_ID: "203t0a306t5vkid4kdeto2hs2i"
+          PUBLIC_POSTHOG_SURVEY_ID: "phc_yNHOBHiP2ylDP8MIxfJ4OcihmfCE9CyJRcPTUYllkdm"
           FARO_APP_ID: "82"
           FARO_STACK_ID: "1355729"
           FARO_API_KEY: ${{ secrets.FARO_API_KEY }}
