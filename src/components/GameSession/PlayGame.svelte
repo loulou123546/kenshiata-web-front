@@ -13,6 +13,7 @@ import { myAchievements } from "../../models/Achievements";
 import { getAvatarSource } from "../../models/characters";
 import type { GameSession } from "../../models/GameSession";
 import notyf from "../../services/notyf";
+import PosthogSurvey from "../PosthogSurvey.svelte";
 
 const { gameSession }: { gameSession: GameSession } = $props<{
 	gameSession: GameSession;
@@ -22,6 +23,7 @@ let texts: StoryLine[] = $state([]);
 let choices: Storychoice[] = $state([]);
 let votes: GamePlayer[][] = $state([]);
 const render_achievements: Achievement[] = $state([]);
+let posthog_survey: string = $state("");
 
 faro.api.setView({
 	name: "game",
@@ -148,6 +150,10 @@ function voteForChoice(index: number) {
 		choiceIndex: index,
 	});
 }
+
+setTimeout(() => {
+	posthog_survey = "019a29fd-a574-0000-3fd7-3622b6050ff2";
+}, 2500);
 </script>
 
 <div class="p-8 max-w-[640px] mx-auto text-justify">
@@ -189,4 +195,5 @@ function voteForChoice(index: number) {
 	{#if render_achievements.length >= 1}
 		<AchivementNotyf title={render_achievements[0].title} description={render_achievements[0].description} disabled={false} notyf={true} />
 	{/if}
+	<PosthogSurvey showId={posthog_survey} userId={gameSession.myUserId} userData={{name: gameSession.getMyPlayer()?.username}} />
 </div>
