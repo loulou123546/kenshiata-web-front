@@ -24,6 +24,7 @@ let choices: Storychoice[] = $state([]);
 let votes: GamePlayer[][] = $state([]);
 const render_achievements: Achievement[] = $state([]);
 let posthog_survey: string = $state("");
+let end_game: boolean = $state(false);
 
 faro.api.setView({
 	name: "game",
@@ -48,6 +49,10 @@ gameSession.addListener("game-continue", (raw: unknown) => {
 	votes = [];
 	for (let i = 0; i < choices.length; i++) {
 		votes[i] = [];
+	}
+	if (choices.length <= 0) {
+		posthog_survey = "019a29fd-a574-0000-3fd7-3622b6050ff2";
+		end_game = true;
 	}
 });
 
@@ -150,10 +155,6 @@ function voteForChoice(index: number) {
 		choiceIndex: index,
 	});
 }
-
-setTimeout(() => {
-	posthog_survey = "019a29fd-a574-0000-3fd7-3622b6050ff2";
-}, 2500);
 </script>
 
 <div class="p-8 max-w-[640px] mx-auto text-justify">
@@ -195,5 +196,7 @@ setTimeout(() => {
 	{#if render_achievements.length >= 1}
 		<AchivementNotyf title={render_achievements[0].title} description={render_achievements[0].description} disabled={false} notyf={true} />
 	{/if}
-	<PosthogSurvey showId={posthog_survey} userId={gameSession.myUserId} userData={{name: gameSession.getMyPlayer()?.username}} />
+	{#if end_game}
+		<PosthogSurvey showId={posthog_survey} userId={gameSession.myUserId} userData={{name: gameSession.getMyPlayer()?.username}} />
+	{/if}
 </div>
