@@ -6,13 +6,13 @@ import { get_access_token } from "../services/auth";
 export const characters = atom<Character[]>([]);
 
 export const Avatars = [
-	"default.png",
+	"cat.jpg",
 	"boykisser.jpg",
-	"purple.jpg",
-	// "kenshiata_ryugy_2025.png",
-	// "tetsuo.png",
-	"fiverr.jpg",
-	"bluewolf.webp",
+	"fox.jpg",
+	"dog.jpg",
+	"horse.jpg",
+	"leopard.jpg",
+	"panda.jpg",
 ];
 
 export function getAvatarSource(
